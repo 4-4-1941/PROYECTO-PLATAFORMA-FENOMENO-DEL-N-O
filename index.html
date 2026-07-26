@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Anticipación El Niño | Plataforma de prevención</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIINfQzjPz4p8gf9M5p/m8Qx0JrL1w8+g6E=" crossorigin="">
+  <style>
+    :root { --primary:#172033; --accent:#2563eb; --success:#16a34a; --warning:#ca8a04; --danger:#dc2626; --surface:#fff; --background:#f1f5f9; --text:#334155; }
+    * { box-sizing: border-box; }
+    body { margin:0; min-height:100vh; background:var(--background); color:var(--text); font-family:"Segoe UI",Roboto,Arial,sans-serif; display:flex; }
+    #sidebar { width:390px; min-width:320px; height:100vh; overflow-y:auto; background:var(--surface); box-shadow:4px 0 18px rgba(15,23,42,.12); z-index:1000; }
+    .header { padding:24px 20px; color:white; background:linear-gradient(135deg,var(--primary),#263a60); }
+    .header h1 { margin:0; font-size:1.35rem; }
+    .header p { margin:7px 0 0; font-size:.88rem; line-height:1.45; opacity:.85; }
+    .section { padding:20px; border-bottom:1px solid #e2e8f0; }
+    .section-title { display:flex; gap:8px; align-items:center; margin-bottom:14px; color:var(--primary); font-weight:700; font-size:1rem; }
+    .layer-control { display:grid; gap:9px; }
+    .layer-btn { width:100%; display:flex; align-items:center; justify-content:space-between; gap:10px; padding:12px; cursor:pointer; text-align:left; border:1px solid #cbd5e1; border-radius:7px; background:#f8fafc; color:var(--text); font:500 .88rem inherit; transition:background .2s,border-color .2s,color .2s; }
+    .layer-btn:hover { background:#eaf1fc; }
+    .layer-btn.active { background:#dbeafe; border-color:var(--accent); color:#1d4ed8; }
+    .layer-color { width:13px; height:13px; flex:0 0 13px; border-radius:50%; box-shadow:inset 0 0 0 1px rgba(0,0,0,.12); }
+    .action-card { margin-bottom:11px; padding:12px; border-left:4px solid var(--accent); border-radius:0 7px 7px 0; background:#fff; box-shadow:0 2px 5px rgba(15,23,42,.06); }
+    .action-card.relo { border-left-color:var(--danger); }.action-card.cont { border-left-color:var(--warning); }.action-card.dren { border-left-color:var(--success); }
+    .action-card h2 { margin:0 0 5px; font-size:.94rem; }.action-card p { margin:0; color:#64748b; font-size:.83rem; line-height:1.4; }
+    .tech-link { display:block; margin-bottom:10px; color:var(--accent); font-size:.87rem; text-decoration:none; }.tech-link:hover { text-decoration:underline; }
+    .note { margin:0; color:#64748b; font-size:.76rem; line-height:1.4; }
+    #map { flex:1; height:100vh; min-width:0; }
+    @media (max-width:700px) { body { display:block; } #sidebar { width:100%; min-width:0; height:auto; max-height:53vh; } #map { height:47vh; } }
+  </style>
+</head>
+<body>
+  <aside id="sidebar" aria-label="Panel de control">
+    <header class="header">
+      <h1>Anticipación El Niño</h1>
+      <p>Monitoreo aeroespacial y mitigación preventiva</p>
+    </header>
+
+    <section class="section" aria-labelledby="capas-title">
+      <div class="section-title" id="capas-title">🛰️ Capas de vistas satelitales</div>
+      <div class="layer-control">
+        <button class="layer-btn" type="button" data-layer="dem" aria-pressed="false"><span>1. Topografía y elevación (DEM)</span><span class="layer-color" style="background:#94a3b8"></span></button>
+        <button class="layer-btn" type="button" data-layer="ndvi" aria-pressed="false"><span>2. Humedad y vegetación (NDVI)</span><span class="layer-color" style="background:#22c55e"></span></button>
+        <button class="layer-btn" type="button" data-layer="infra" aria-pressed="false"><span>3. Infraestructura vulnerable</span><span class="layer-color" style="background:#ef4444"></span></button>
+        <button class="layer-btn" type="button" data-layer="tsm" aria-pressed="false"><span>4. Temperatura superficial del mar</span><span class="layer-color" style="background:#3b82f6"></span></button>
+      </div>
+    </section>
+
+    <section class="section" aria-labelledby="acciones-title">
+      <div class="section-title" id="acciones-title">🧠 Decisiones automatizadas</div>
+      <article class="action-card relo"><h2>🔴 Reubicación preventiva</h2><p>Cruzar DEM e infraestructura para identificar poblaciones en quebradas activas y trasladarlas a zonas seguras.</p></article>
+      <article class="action-card cont"><h2>🟡 Muros de contención</h2><p>Cruzar DEM y NDVI para detectar puntos críticos en cuencas altas con pérdida de fijación estructural.</p></article>
+      <article class="action-card dren"><h2>🟢 Descolmatación de drenajes</h2><p>Cruzar infraestructura y TSM para priorizar redes pluviales en zonas urbanas de alta densidad.</p></article>
+    </section>
+
+    <section class="section" aria-labelledby="fuentes-title">
+      <div class="section-title" id="fuentes-title">🛠️ Fuentes y tecnología</div>
+      <a class="tech-link" href="https://www.copernicus.eu/" target="_blank" rel="noopener">🌐 Sentinel-1 y Sentinel-2 — Copernicus</a>
+      <a class="tech-link" href="https://www.usgs.gov/landsat-missions" target="_blank" rel="noopener">🌐 Landsat — USGS</a>
+      <a class="tech-link" href="https://earthengine.google.com/" target="_blank" rel="noopener">⚙️ Google Earth Engine</a>
+      <a class="tech-link" href="https://streamlit.io/" target="_blank" rel="noopener">🐍 Streamlit / Dash</a>
+      <p class="note">Las capas mostradas son una demostración cartográfica y no sustituyen datos oficiales ni decisiones de gestión del riesgo.</p>
+    </section>
+  </aside>
+  <main id="map" aria-label="Mapa de riesgo en el norte del Perú"></main>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <script>
+    const map = L.map('map', { zoomControl: true }).setView([-4.5, -80.5], 7);
+    L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+      attribution: 'Tiles © Esri — Source: Esri, Maxar, Earthstar Geographics, and the GIS User Community', maxZoom: 19
+    }).addTo(map);
+    L.control.scale({ imperial: false }).addTo(map);
+
+    const layers = { dem:L.layerGroup(), ndvi:L.layerGroup(), infra:L.layerGroup(), tsm:L.layerGroup() };
+    L.circle([-5.0,-81.5], { color:'#2563eb', fillColor:'#ef4444', fillOpacity:.35, radius:120000 }).bindPopup('<strong>Anomalía TSM: +3,5 °C</strong><br>Alerta temprana de evaporación masiva.').addTo(layers.tsm);
+    L.polygon([[-5.18,-80.65],[-5.20,-80.60],[-5.25,-80.62],[-5.22,-80.68]], { color:'#64748b', fillColor:'#38bdf8', fillOpacity:.6 }).bindPopup('<strong>Zona baja de estancamiento (DEM)</strong><br>Riesgo alto de inundación pluvial.').addTo(layers.dem);
+    L.circle([-4.9,-80.2], { color:'#15803d', fillColor:'#22c55e', fillOpacity:.5, radius:15000 }).bindPopup('<strong>Índice NDVI crítico</strong><br>Suelo inestable; probabilidad de huaico o deslizamiento.').addTo(layers.ndvi);
+    L.marker([-5.19,-80.63]).bindPopup('<strong>Población vulnerable detectada</strong><br>Acción recomendada: reubicación preventiva.').addTo(layers.infra);
+    L.marker([-3.56,-80.45]).bindPopup('<strong>Punto crítico: Hospital Tumbes</strong><br>Acción recomendada: defensa perimetral.').addTo(layers.infra);
+
+    document.querySelectorAll('[data-layer]').forEach(button => button.addEventListener('click', () => {
+      const name = button.dataset.layer, layer = layers[name], enabled = map.hasLayer(layer);
+      if (enabled) map.removeLayer(layer); else layer.addTo(map);
+      button.classList.toggle('active', !enabled);
+      button.setAttribute('aria-pressed', String(!enabled));
+    }));
+  </script>
+</body>
+</html>
