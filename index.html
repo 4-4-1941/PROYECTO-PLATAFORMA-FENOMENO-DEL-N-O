@@ -25,6 +25,7 @@
     .action-card h2 { margin:0 0 5px; font-size:.94rem; }.action-card p { margin:0; color:#64748b; font-size:.83rem; line-height:1.4; }
     .tech-link { display:block; margin-bottom:10px; color:var(--accent); font-size:.87rem; text-decoration:none; }.tech-link:hover { text-decoration:underline; }
     .note { margin:0; color:#64748b; font-size:.76rem; line-height:1.4; }
+    .map-status { margin:12px 0 0; padding:9px 10px; border-radius:6px; background:#eff6ff; color:#1e40af; font-size:.78rem; line-height:1.35; }
     #map { flex:1; height:100vh; min-width:0; }
     @media (max-width:700px) { body { display:block; } #sidebar { width:100%; min-width:0; height:auto; max-height:53vh; } #map { height:47vh; } }
   </style>
@@ -43,7 +44,9 @@
         <button class="layer-btn" type="button" data-layer="ndvi" aria-pressed="false"><span>2. Humedad y vegetación (NDVI)</span><span class="layer-color" style="background:#22c55e"></span></button>
         <button class="layer-btn" type="button" data-layer="infra" aria-pressed="false"><span>3. Infraestructura vulnerable</span><span class="layer-color" style="background:#ef4444"></span></button>
         <button class="layer-btn" type="button" data-layer="tsm" aria-pressed="false"><span>4. Temperatura superficial del mar</span><span class="layer-color" style="background:#3b82f6"></span></button>
+        <button class="layer-btn" type="button" data-layer="departamentos" aria-pressed="false"><span>5. Límites de departamentos</span><span class="layer-color" style="background:#a855f7"></span></button>
       </div>
+      <p class="map-status" id="map-status">Cargando límites administrativos del Perú…</p>
     </section>
 
     <section class="section" aria-labelledby="acciones-title">
@@ -72,12 +75,32 @@
     }).addTo(map);
     L.control.scale({ imperial: false }).addTo(map);
 
-    const layers = { dem:L.layerGroup(), ndvi:L.layerGroup(), infra:L.layerGroup(), tsm:L.layerGroup() };
+    const layers = { dem:L.layerGroup(), ndvi:L.layerGroup(), infra:L.layerGroup(), tsm:L.layerGroup(), departamentos:L.layerGroup() };
     L.circle([-5.0,-81.5], { color:'#2563eb', fillColor:'#ef4444', fillOpacity:.35, radius:120000 }).bindPopup('<strong>Anomalía TSM: +3,5 °C</strong><br>Alerta temprana de evaporación masiva.').addTo(layers.tsm);
     L.polygon([[-5.18,-80.65],[-5.20,-80.60],[-5.25,-80.62],[-5.22,-80.68]], { color:'#64748b', fillColor:'#38bdf8', fillOpacity:.6 }).bindPopup('<strong>Zona baja de estancamiento (DEM)</strong><br>Riesgo alto de inundación pluvial.').addTo(layers.dem);
     L.circle([-4.9,-80.2], { color:'#15803d', fillColor:'#22c55e', fillOpacity:.5, radius:15000 }).bindPopup('<strong>Índice NDVI crítico</strong><br>Suelo inestable; probabilidad de huaico o deslizamiento.').addTo(layers.ndvi);
     L.marker([-5.19,-80.63]).bindPopup('<strong>Población vulnerable detectada</strong><br>Acción recomendada: reubicación preventiva.').addTo(layers.infra);
     L.marker([-3.56,-80.45]).bindPopup('<strong>Punto crítico: Hospital Tumbes</strong><br>Acción recomendada: defensa perimetral.').addTo(layers.infra);
+
+    const status = document.getElementById('map-status');
+    fetch('departamentos.geojson')
+      .then(response => {
+        if (!response.ok) throw new Error('No se encontró el archivo de departamentos');
+        return response.json();
+      })
+      .then(data => {
+        L.geoJSON(data, {
+          style: { color:'#7e22ce', weight:1.5, fillColor:'#c084fc', fillOpacity:.08 },
+          onEachFeature: (feature, layer) => {
+            const name = feature.properties.nombdep || 'Departamento';
+            layer.bindPopup(`<strong>${name}</strong><br>Límite administrativo nacional.`);
+          }
+        }).addTo(layers.departamentos);
+        status.textContent = `Límites cargados: ${data.features.length} departamentos. Activa la capa 5 para verlos.`;
+      })
+      .catch(() => {
+        status.textContent = 'No se pudieron cargar los límites. Verifica que departamentos.geojson esté junto a index.html.';
+      });
 
     document.querySelectorAll('[data-layer]').forEach(button => button.addEventListener('click', () => {
       const name = button.dataset.layer, layer = layers[name], enabled = map.hasLayer(layer);
