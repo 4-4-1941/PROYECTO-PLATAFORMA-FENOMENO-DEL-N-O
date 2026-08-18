@@ -158,7 +158,27 @@ function irRegion(r){map.setView([r[2],r[3]],7);const o=riesgoMap[r[0]];const mm
 const norm=s=>s.toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^A-Z0-9 ]/g,'').trim();
 function ocultarSug(){sugEl.classList.remove('show');}
 function buscar(){const q=norm(qi.value);if(!q)return;let d=DISTRITOS.find(x=>norm(x[0])===q||norm(x[1])===q);if(d&&d[4]){irDistrito(d);return;}let p=PROVINCIAS.find(x=>norm(x[0])===q);if(p){irProvincia(p);return;}let r=REGIONES.find(x=>norm(x[0])===q||norm(x[1])===q);if(r){irRegion(r);return;}const fuzzy=(txt,q)=>{for(const ch of q){const j=txt.indexOf(ch);if(j<0)return false;txt=txt.slice(j+1);}return q.length>2;};d=DISTRITOS.find(x=>fuzzy(norm(x[0]),q));if(d&&d[4]){irDistrito(d);return;}pT.textContent='No encontrado';pS.textContent='Prueba: Samegua, Chincha, Huanta, Corrales…';pB.className='badge-lg bajo';pB.textContent='?';panel.classList.remove('closed');}
-function sugerir(){const q=norm(qi.value);if(q.length<1){ocultarSug();return;}const out=[];DISTRITOS.forEach(x=>{if(out.length<4&&norm(x[0]).startsWith(q))out.push(['d',x]);});if(out.length<4)PROVINCIAS.forEach(x=>{if(out.length<6&&norm(x[0]).startsWith(q))out.push(['p',x]);});if(out.length<6)REGIONES.forEach(x=>{if(out.length<7&&(norm(x[0]).startsWith(q)||norm(x[1]).startsWith(q)))out.push(['r',x]);});if(!out.length){ocultarSug();return;}sugEl.innerHTML=out.map(t=>{const x=t[1];if(t[0]==='d')return `<div class="gc-item" data-t="d" data-i="${DISTRITOS.indexOf(x)}"><b>${x[0]}</b><small>Distrito · ${x[1]}, ${x[2]}</small></div>`;if(t[0]==='p')return `<div class="gc-item" data-t="p" data-i="${PROVINCIAS.indexOf(x)}"><b>${x[0]}</b><small>Provincia · ${x[1]}</small></div>`;return `<div class="gc-item" data-t="r" data-i="${REGIONES.indexOf(x)}"><b>${x[0]}</b><small>Región · ${x[1]}</small></div>`;}).join('');sugEl.classList.add('show');sugEl.querySelectorAll('.gc-item').forEach(el=>el.addEventListener('click',()=>{const t=el.dataset.t,i=+el.dataset.i;if(t==='d'){irDistrito(DISTRITOS[i]);}else if(t==='p'){irProvincia(PROVINCIAS[i]);}else{irRegion(REGIONES[i]);}ocultarSug();}));}
+/* ===== BUSCADOR JERARQUICO TIPO ARBOL INEI (dept -> prov -> distrito) ===== */
+function construirArbol(){const arbol={};DISTRITOS.forEach(d=>{const dep=d[2],prov=d[1];if(!arbol[dep])arbol[dep]={};if(!arbol[dep][prov])arbol[dep][prov]=[];arbol[dep][prov].push(d);});return arbol;}
+const ARBOL=construirArbol();
+let expandido=null;
+function renderArbol(q){const nrm=s=>s.toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^A-Z0-9 ]/g,'').trim();const deps=Object.keys(ARBOL).filter(d=>nrm(d).includes(q)||d.includes(q)).sort();let html='';deps.forEach(dep=>{html+='<div class="gc-item" data-accion="dep" data-dep="'+dep+'"><b>🏙️ '+dep+'</b> <small>Departamento · toca para ver provincias ▸</small></div>';if(expandido&&expandido.dep===dep){Object.keys(ARBOL[dep]).sort().forEach(prov=>{const dists=ARBOL[dep][prov];html+='<div class="gc-item" style="padding-left:24px" data-accion="prov" data-dep="'+dep+'" data-prov="'+prov+'"><b>▸ '+prov+'</b> <small>'+dists.length+' distritos · toca ▸</small></div>';if(expandido.prov===prov){dists.forEach(d=>{if(d[4])html+='<div class="gc-item" style="padding-left:44px" data-accion="dist" data-i="'+DISTRITOS.indexOf(d)+'"><b>• '+d[0]+'</b> <small>UBIGEO '+d[3]+'</small></div>';});}});}});return html;}
+function sugerir(){
+  const q=norm(qi.value);
+  if(q.length<1){ocultarSug();return;}
+  if(!sugEl.dataset.q||sugEl.dataset.q!==q)expandido=null;
+  sugEl.dataset.q=q;
+  const html=renderArbol(q);
+  if(!html){ocultarSug();return;}
+  sugEl.innerHTML=html;
+  sugEl.classList.add('show');
+  sugEl.querySelectorAll('.gc-item').forEach(el=>el.addEventListener('click',()=>{
+    const acc=el.dataset.accion;
+    if(acc==='dep'){expandido={dep:el.dataset.dep,prov:null};sugEl.innerHTML=renderArbol(norm(qi.value));}
+    else if(acc==='prov'){expandido={dep:el.dataset.dep,prov:el.dataset.prov};sugEl.innerHTML=renderArbol(norm(qi.value));}
+    else if(acc==='dist'){irDistrito(DISTRITOS[+el.dataset.i]);ocultarSug();}
+  }));
+}
 qi.addEventListener('input',sugerir);qi.addEventListener('keydown',e=>{if(e.key==='Enter'){buscar();ocultarSug();}});
 document.addEventListener('click',e=>{if(!e.target.closest('#searchBox'))ocultarSug();});
 
