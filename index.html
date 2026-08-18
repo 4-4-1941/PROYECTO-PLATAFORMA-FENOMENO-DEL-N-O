@@ -8,9 +8,9 @@
 <style>
 :root{--primary:#0f172a;--accent:#2563eb;--ok:#16a34a;--mid:#f59e0b;--hi:#dc2626;--muted:#64748b}
 *{box-sizing:border-box;margin:0;padding:0}
-html,body{height:100%;width:100%;overflow:hidden;font-family:"Segoe UI",Roboto,Arial,sans-serif;color:#1e293b}
-/* ===== MAPA A PANTALLA COMPLETA (SIEMPRE LLENO, NO SE ACHICA) ===== */
-#map{position:fixed;inset:0;width:100%;height:100%;z-index:1;background:#eef2f6}
+html,body{height:100%;width:100%;margin:0;padding:0;overflow:hidden;font-family:"Segoe UI",Roboto,Arial,sans-serif;color:#1e293b}
+/* ===== MAPA A PANTALLA COMPLETA (100dvh cubre toda la altura en móvil) ===== */
+#map{position:fixed;top:0;left:0;right:0;bottom:0;width:100%;height:100dvh;height:100%;z-index:1;background:#eef2f6;border:none}
 /* ===== COLUMNA LATERAL DE RESULTADO/DETALLE (tipo Google Maps) ===== */
 #panel{position:fixed;top:0;left:0;bottom:0;width:400px;max-width:92vw;z-index:1000;background:#fff;box-shadow:4px 0 24px rgba(15,23,42,.25);display:flex;flex-direction:column;transform:translateX(0);transition:transform .25s}
 #panel.closed{transform:translateX(-100%)}
