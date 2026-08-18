@@ -46,3 +46,14 @@ html,body{height:100%;width:100%;margin:0;padding:0;overflow:hidden;font-family:
 #togglePanel{position:fixed;top:14px;right:14px;z-index:2000;background:#fff;border:none;border-radius:28px;box-shadow:0 4px 14px rgba(15,23,42,.18);width:44px;height:44px;font-size:1.2rem;cursor:pointer}
 @media(max-width:720px){#panel{width:100%;max-width:100vw}#panel.closed{transform:translateX(-100%)}#searchBox{top:10px;left:10px;right:10px;width:auto}}
 
+
+/* Jerarquía dep->prov->distrito (panel deslizable) */
+.jer-title{font-weight:700;color:#0f172a;margin:10px 0 6px;font-size:.85rem}
+.jer-item{background:#f8fafc;border-radius:8px;padding:9px 11px;margin-bottom:6px;cursor:pointer;border:1px solid #e2e8f0}
+.jer-item:hover{background:#eff6ff}
+.jer-item b{font-size:.88rem;color:#0f172a}
+.jer-item small{display:block;color:#64748b;font-size:.72rem;margin-top:2px}
+.jer-sub{margin-top:6px;border-top:1px solid #e2e8f0;padding-top:6px}
+.jer-dist{padding:6px 8px;border-radius:6px;cursor:pointer;font-size:.82rem}
+.jer-dist:hover{background:#dbeafe}
+.jer-dist small{color:#64748b;font-size:.7rem;margin-left:4px}
