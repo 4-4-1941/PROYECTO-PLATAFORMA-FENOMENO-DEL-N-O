@@ -1,57 +1,70 @@
 # Anticipación El Niño · Gestión de riesgo y acción comunitaria
 
 Plataforma web para la prevención de desastres asociados al Fenómeno El Niño en el Perú.
-Cubre las **25 regiones** del país y cruza **lluvia pronosticada en tiempo real** con la
-**vulnerabilidad de cada región** para emitir avisos de riesgo y **acciones preventivas
-concretas para la comunidad**.
+Cubre las **25 regiones** (departamento → provincia → distrito, con UBIGEO INEI) y cruza
+**lluvia pronosticada en tiempo real** con la vulnerabilidad territorial para emitir
+avisos de riesgo y **acciones preventivas** para la comunidad.
 
-> No es una app meteorológica: es una herramienta de **gestión de riesgo**.
-> Los umbrales y acciones son criterios de preparación de esta herramienta y **no
-> sustituyen** los comunicados oficiales de ENFEN, SENAMHI, CENEPRED o INDECI.
+> Herramienta de **gestión de riesgo**, no una app meteorológica.
+> Umbrales y acciones son criterios de esta herramienta y **no sustituyen** los
+> comunicados oficiales de ENFEN, SENAMHI, CENEPRED o INDECI.
 
-## Estructura del proyecto
+## Estructura del proyecto (modular)
 
 ```
 FENOMENO-DEL-N-O/
-├── index.html        # Página principal (carga leaflet + data.js + app.js)
-├── styles.css        # Estilos (diseño aprobado, responsive)
-├── data.js           # Catálogo de 25 regiones + fuentes oficiales (datos locales)
-├── app.js            # Lógica: mapa, riesgo en vivo, ONI, búsqueda, capas
-├── departamentos.geojson  # Límites oficiales (24 deptos + Callao) — base cartográfica
+├── index.html              # Punto de entrada ligero (carga módulos)
+├── css/
+│   └── styles.css          # Estilos (diseño aprobado, responsive)
+├── js/
+│   ├── app.js              # Orquestador principal
+│   ├── map.js              # Mapa base y capas
+│   ├── search.js           # Búsqueda jerárquica (árbol INEI)
+│   ├── weather.js          # Lluvia en vivo (results + fallback localStorage)
+│   ├── oni.js              # Estado El Niño (honesto: en vivo vs referencia)
+│   ├── alerts.js           # Panel de alertas
+│   └── ui.js               # Panel lateral y tarjetas
+├── data/                   # Datos territoriales INEI (con UBIGEO)
+│   ├── departamentos.js    # 25 departamentos
+│   ├── provincias.js       # 197 provincias
+│   ├── distritos.js        # 1834 distritos
+│   ├── centros_poblados.js # pendiente dato oficial (vacío)
+│   └── caserios.js         # pendiente dato oficial (vacío)
+├── geo/
+│   └── departamentos.geojson  # Capa territorial (24 deptos + Callao)
+├── docs/
+│   └── README.md           # Documentación de arquitectura
+├── .gitignore
 └── antecedentes-historicos-el-nino-peru.md  # Contexto histórico
 ```
 
 ## Funcionalidades
 
-- **Estado del fenómeno El Niño (ONI/NOAA):** fase actual (El Niño / Neutral / La Niña)
-  con el índice oceánico, con lectura en vivo (proxy) y respaldo a valor documentado.
-- **Riesgo por lluvia en vivo:** pronóstico a 72 h (Open-Meteo) para cada una de las
-  25 regiones, con **umbral por tipo de región** (costa desértica, costa norte,
-  altiplano, selva alta, amazonía).
-- **Acción preventiva comunitaria** por región (ej. Ayacucho: alertar por huaicos en
-  quebradas; Loreto: monitorear crecida de ríos amazónicos).
-- **Búsqueda** por región (ej. "Puno", "Ayacucho", "Amazonas") — salta en el mapa.
-- **Capas** en vivo (riesgo, TSM costa) con toggles ON/OFF.
+- **Estado del fenómeno El Niño (ONI/NOAA):** fase actual con lectura en vivo (proxy) y
+  respaldo a valor documentado, etiquetado con claridad (en vivo vs referencia).
+- **Riesgo por lluvia en vivo:** pronóstico 72 h (Open-Meteo) por región, con niveles
+  escalonados (verde / naranja / rojo). Procesa respuesta `results` de la API y usa
+  `localStorage` como fallback si falla.
+- **Búsqueda jerárquica:** departamento → provincia → distrito (árbol INEI), con UBIGEO.
+- **Mapa a pantalla completa** (`100dvh`) estilo Google Maps, base CartoDB (rápida, no se rompe en red lenta).
 - **Fuentes oficiales** enlazadas (ENFEN, SENAMHI, CENEPRED/SIGRID, INDECI, NOAA, CHIRPS, GloFAS, INEI).
 
 ## Cómo usar
 
-1. Sube los 5 archivos del proyecto a la raíz del repositorio (GitHub Pages).
-2. Abre la URL del sitio (`https://TU-USUARIO.github.io/FENOMENO-DEL-N-O/`).
-3. Usa el buscador para ir a una región o toca los puntos del mapa para ver su
-   lluvia, nivel y acción preventiva.
+1. Sube la **estructura completa** (index.html, css/, js/, data/, geo/, docs/) a la raíz del repositorio.
+2. Abre `https://TU-USUARIO.github.io/FENOMENO-DEL-N-O/`.
+3. Usa el buscador para ir a un distrito/provincia/región o toca el mapa.
 
 ## Datos y fuentes
 
-- **Lluvia en vivo:** Open-Meteo (pronóstico 72 h, CORS abierto).
-- **TSM en vivo:** Open-Meteo Marine.
+- **Lluvia en vivo:** Open-Meteo (pronóstico 72 h, CORS abierto) — no validado por SENAMHI.
 - **Índice ONI:** NOAA/CPC (ERSST v6).
-- **Límites:** GeoJSON (INEI) — `departamentos.geojson`.
-- **Contexto:** IGP, ENFEN, INDECI (ver `antecedentes-historicos-el-nino-peru.md`).
+- **Territorio:** INEI (UBIGEO) — departamentos, provincias, distritos.
+- **Contexto:** IGP, ENFEN, INDECI.
 
 ## Despliegue
 
-Se publica como sitio estático en **GitHub Pages** (los 5 archivos en la raíz).
-Para datos oficiales más pesados (SIGRID raster, SENAMHI estaciones) se requiere
-un backend (FastAPI + PostGIS) fuera de GitHub Pages — fase futura anotada.
+Sitio estático en **GitHub Pages**. Para datos oficiales pesados (SIGRID raster, SENAMHI
+estaciones) o centros poblados/caseríos completos se requiere backend (FastAPI + PostGIS)
+o el shapefile oficial de Centros Poblados del INEI (fase futura).
 
