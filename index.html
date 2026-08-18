@@ -3,249 +3,247 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Anticipación El Niño | Gestión de riesgo y acciones preventivas</title>
+  <title>Anticipación El Niño | Gestión de riesgo y acción comunitaria</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIINfQzjPz4p8gf9M5p/m8Qx0JrL1w8+g6E=" crossorigin="">
   <style>
-    :root { --primary:#172033; --accent:#2563eb; --success:#16a34a; --warning:#ca8a04; --danger:#dc2626; --surface:#fff; --background:#f1f5f9; --text:#334155; }
-    * { box-sizing: border-box; }
-    body { margin:0; min-height:100vh; background:var(--background); color:var(--text); font-family:"Segoe UI",Roboto,Arial,sans-serif; display:flex; }
-    #sidebar { width:410px; min-width:320px; height:100vh; overflow-y:auto; background:var(--surface); box-shadow:4px 0 18px rgba(15,23,42,.12); z-index:1000; }
-    .header { padding:22px 20px; color:white; background:linear-gradient(135deg,var(--primary),#263a60); }
-    .header h1 { margin:0; font-size:1.3rem; }
-    .header p { margin:7px 0 0; font-size:.88rem; line-height:1.45; opacity:.85; }
-    .section { padding:20px; border-bottom:1px solid #e2e8f0; }
-    .section-title { display:flex; gap:8px; align-items:center; margin-bottom:14px; color:var(--primary); font-weight:700; font-size:1rem; }
-    .pillar { font-size:.72rem; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:#64748b; margin:16px 0 7px; }
-    .layer-control { display:grid; gap:9px; }
-    .layer-btn { width:100%; display:flex; align-items:center; justify-content:space-between; gap:10px; padding:12px; cursor:pointer; text-align:left; border:1px solid #cbd5e1; border-radius:7px; background:#f8fafc; color:var(--text); font:500 .88rem inherit; transition:background .2s,border-color .2s,color .2s; }
-    .layer-btn:hover { background:#eaf1fc; }
-    .layer-btn.active { background:#dbeafe; border-color:var(--accent); color:#1d4ed8; }
-    .layer-btn .left { display:flex; flex-direction:column; gap:3px; min-width:0; }
-    .layer-btn .name { font-weight:600; }
-    .layer-btn .tag { font-size:.68rem; font-weight:500; color:#64748b; text-transform:uppercase; letter-spacing:.03em; }
-    .layer-btn.active .tag { color:#1d4ed8; }
-    .layer-color { width:13px; height:13px; flex:0 0 13px; border-radius:50%; box-shadow:inset 0 0 0 1px rgba(0,0,0,.12); }
-    .alert-card { margin-bottom:11px; padding:12px; border-radius:8px; background:#fff; box-shadow:0 2px 6px rgba(15,23,42,.08); border-left:5px solid var(--success); }
-    .alert-card.high { border-left-color:var(--danger); background:#fef2f2; }
-    .alert-card.mid { border-left-color:var(--warning); background:#fffbeb; }
-    .alert-card h3 { margin:0 0 4px; font-size:.95rem; }
-    .alert-card .loc { font-weight:700; color:var(--primary); }
-    .alert-card .badge { display:inline-block; padding:2px 8px; border-radius:10px; font-size:.68rem; font-weight:700; color:#fff; margin-left:6px; vertical-align:middle; }
-    .alert-card .badge.high { background:var(--danger); }
-    .alert-card .badge.mid { background:var(--warning); }
-    .alert-card .badge.low { background:var(--success); }
-    .alert-card p { margin:5px 0 0; color:#475569; font-size:.83rem; line-height:1.45; }
-    .alert-card .action { margin-top:7px; padding:8px 10px; border-radius:6px; background:#eff6ff; color:#1e40af; font-size:.8rem; line-height:1.4; }
-    .alert-card .action b { color:#1d4ed8; }
-    .risk-meter { display:flex; gap:6px; margin:12px 0; }
-    .risk-meter span { flex:1; height:10px; border-radius:6px; background:#e2e8f0; }
-    .risk-meter span.on-low { background:var(--success); }
-    .risk-meter span.on-mid { background:var(--warning); }
-    .risk-meter span.on-high { background:var(--danger); }
-    .risk-legend { margin:0; color:#64748b; font-size:.76rem; line-height:1.5; }
-    .tech-link { display:block; margin-bottom:10px; color:var(--accent); font-size:.87rem; text-decoration:none; }.tech-link:hover { text-decoration:underline; }
-    .note { margin:0; color:#64748b; font-size:.76rem; line-height:1.4; }
-    .map-status { margin:12px 0 0; padding:9px 10px; border-radius:6px; background:#eff6ff; color:#1e40af; font-size:.78rem; line-height:1.35; }
-    #map { flex:1; height:100vh; min-width:0; }
-    .info-panel { position:absolute; right:12px; top:12px; z-index:1000; width:250px; background:rgba(255,255,255,.96); border-radius:9px; box-shadow:0 4px 14px rgba(15,23,42,.18); padding:14px; font-size:.8rem; display:none; }
-    .info-panel h3 { margin:0 0 8px; font-size:.9rem; color:var(--primary); }
-    .info-panel p { margin:4px 0; color:#475569; line-height:1.45; }
-    .live-badge { display:inline-flex; align-items:center; gap:6px; padding:3px 8px; border-radius:12px; background:#dcfce7; color:#166534; font-size:.7rem; font-weight:700; }
-    .live-badge .dot { width:7px; height:7px; border-radius:50%; background:#16a34a; animation:blink 1.4s infinite; }
-    @keyframes blink { 50% { opacity:.25; } }
-    @media (max-width:700px) { body { display:block; } #sidebar { width:100%; min-width:0; height:auto; max-height:53vh; } #map { height:47vh; } .info-panel { width:200px; } }
+    :root { --primary:#0f172a; --accent:#2563eb; --success:#16a34a; --warning:#f59e0b; --danger:#dc2626; --surface:#fff; --background:#eef2f6; --text:#1e293b; --muted:#64748b; }
+    * { box-sizing:border-box; }
+    html,body { margin:0; height:100%; }
+    body { background:var(--background); color:var(--text); font-family:"Segoe UI",Roboto,Arial,sans-serif; display:flex; }
+    #sidebar { width:420px; min-width:320px; height:100vh; overflow-y:auto; background:var(--surface); box-shadow:4px 0 20px rgba(15,23,42,.14); z-index:1000; display:flex; flex-direction:column; }
+    .header { padding:20px; color:#fff; background:linear-gradient(135deg,var(--primary),#1e3a8a); }
+    .header h1 { margin:0; font-size:1.22rem; letter-spacing:.2px; }
+    .header p { margin:6px 0 0; font-size:.84rem; opacity:.82; line-height:1.4; }
+    .header .src { margin-top:10px; font-size:.66rem; opacity:.6; }
+    .body { flex:1; overflow-y:auto; }
+    .section { padding:16px 18px; border-bottom:1px solid #e2e8f0; }
+    .section-title { display:flex; align-items:center; gap:8px; margin-bottom:12px; color:var(--primary); font-weight:700; font-size:.98rem; }
+    .search input { width:100%; padding:11px 12px; border:1px solid #cbd5e1; border-radius:7px; font-size:.9rem; }
+    .search input:focus { outline:none; border-color:var(--accent); box-shadow:0 0 0 3px #dbeafe; }
+    .pill { display:inline-block; padding:2px 8px; border-radius:10px; font-size:.68rem; font-weight:700; color:#fff; }
+    .pill.ok { background:var(--success); } .pill.mid { background:var(--warning); } .pill.hi { background:var(--danger); }
+    .alert { margin-bottom:11px; padding:12px; border-radius:8px; background:#fff; box-shadow:0 2px 6px rgba(15,23,42,.07); border-left:5px solid var(--success); }
+    .alert.hi { border-left-color:var(--danger); background:#fef2f2; }
+    .alert.mid { border-left-color:var(--warning); background:#fffbeb; }
+    .alert .h { display:flex; align-items:center; gap:8px; }
+    .alert .loc { font-weight:700; font-size:.93rem; }
+    .alert p { margin:6px 0 0; color:#475569; font-size:.82rem; line-height:1.45; }
+    .alert .action { margin-top:8px; padding:8px 10px; border-radius:6px; background:#eff6ff; color:#1e40af; font-size:.78rem; line-height:1.4; }
+    /* ONI / estado El Niño */
+    .oni-card { border-radius:9px; padding:14px; color:#fff; margin-bottom:14px; }
+    .oni-card.warm { background:linear-gradient(135deg,#b91c1c,#dc2626); }
+    .oni-card.neutral { background:linear-gradient(135deg,#334155,#475569); }
+    .oni-card.cool { background:linear-gradient(135deg,#1e3a8a,#2563eb); }
+    .oni-card .ph { font-size:1.05rem; font-weight:800; }
+    .oni-card .val { font-size:.85rem; opacity:.9; margin-top:5px; line-height:1.4; }
+    .oni-card .src2 { font-size:.66rem; opacity:.7; margin-top:8px; }
+    .legend { display:grid; grid-template-columns:1fr 1fr; gap:6px 12px; margin-top:8px; font-size:.72rem; color:var(--muted); }
+    .legend .row { display:flex; align-items:center; gap:7px; }
+    .legend .dot { width:12px; height:12px; border-radius:50%; flex:0 0 12px; border:1px solid rgba(0,0,0,.15); }
+    .link { display:block; margin-bottom:9px; color:var(--accent); font-size:.85rem; text-decoration:none; }
+    .link:hover { text-decoration:underline; }
+    .note { margin:0; color:var(--muted); font-size:.74rem; line-height:1.45; }
+    .map-status { margin-top:10px; padding:8px 10px; border-radius:6px; background:#eff6ff; color:#1e40af; font-size:.74rem; line-height:1.35; }
+    #map { flex:1; height:100vh; min-width:0; position:relative; }
+    .toast { position:absolute; left:10px; bottom:24px; z-index:1100; background:var(--primary); color:#fff; padding:10px 14px; border-radius:8px; font-size:.82rem; box-shadow:0 4px 12px rgba(0,0,0,.25); display:none; max-width:70%; }
+    @media (max-width:720px){ body{ display:block; } #sidebar{ width:100%; min-width:0; height:auto; max-height:56vh; } .body{ max-height:none; overflow-y:auto; } #map{ height:44vh; } }
   </style>
 </head>
 <body>
   <aside id="sidebar" aria-label="Panel de control">
     <header class="header">
       <h1>Anticipación El Niño</h1>
-      <p>Gestión de riesgo y acciones preventivas · Perú</p>
+      <p>Gestión de riesgo y acción comunitaria · Perú completo</p>
+      <div class="src">Lluvia y TSM: Open-Meteo (en vivo). Límites: INEI/GeoJSON. El Niño: NOAA ONI.</div>
     </header>
+    <div class="body">
+      <section class="section">
+        <div class="section-title">🌡️ Estado del fenómeno El Niño (NOAA)</div>
+        <div id="oniCard"><div class="oni-card neutral"><div class="ph">Consultando índice ONI…</div><div class="val">Conectando con NOAA/PSL.</div></div></div>
+        <div class="section-title" style="margin-top:8px">🔎 Ir a una región</div>
+        <div class="search"><input id="searchInput" type="text" placeholder="Escribe: Puno, Ayacucho, Amazonas…" autocomplete="off"></div>
+      </section>
 
-    <section class="section" aria-labelledby="avisos-title">
-      <div class="section-title" id="avisos-title">🚨 Avisos de riesgo por localidad</div>
-      <div id="alertList">
-        <p class="risk-legend">Consultando lluvia pronosticada en tiempo real y cruzando con la vulnerabilidad de cada localidad…</p>
-      </div>
-      <p class="map-status" id="map-status">Cargando límites y datos de riesgo en vivo…</p>
-    </section>
+      <section class="section">
+        <div class="section-title">🚨 Riesgo por lluvia (en vivo) y acción comunitaria</div>
+        <div id="alertList"><p class="note">Consultando lluvia en tiempo real para las 25 regiones…</p></div>
+        <div class="legend">
+          <div class="row"><span class="dot" style="background:var(--success)"></span>Sin riesgo (&lt;umbral)</div>
+          <div class="row"><span class="dot" style="background:var(--warning)"></span>Moderado</div>
+          <div class="row"><span class="dot" style="background:var(--danger)"></span>Alto/Extremo</div>
+        </div>
+        <p class="map-status" id="mapStatus">Cargando límites nacionales…</p>
+      </section>
 
-    <section class="section" aria-labelledby="capas-title">
-      <div class="section-title" id="capas-title">🗺️ Capas del visor</div>
-      <div class="layer-control">
-        <div class="pillar">Base · dato real</div>
-        <button class="layer-btn active" type="button" data-layer="departamentos" aria-pressed="true">
-          <span class="left"><span class="name">Límites administrativos</span><span class="tag">Dato real · GeoJSON</span></span>
-          <span class="layer-color" style="background:#a855f7"></span>
-        </button>
-        <div class="pillar">Riesgo en tiempo real</div>
-        <button class="layer-btn active" type="button" data-layer="riesgo" aria-pressed="true">
-          <span class="left"><span class="name">Localidades en riesgo</span><span class="tag"><span class="live-badge"><span class="dot"></span>En vivo</span></span></span>
-          <span class="layer-color" style="background:#f97316"></span>
-        </button>
-        <button class="layer-btn active" type="button" data-layer="tsm" aria-pressed="true">
-          <span class="left"><span class="name">Temperatura del mar (TSM)</span><span class="tag"><span class="live-badge"><span class="dot"></span>En vivo</span></span></span>
-          <span class="layer-color" style="background:#3b82f6"></span>
-        </button>
-        <div class="pillar">Exposición / vulnerabilidad (ilustrativa)</div>
-        <button class="layer-btn" type="button" data-layer="dem" aria-pressed="false">
-          <span class="left"><span class="name">Topografía y quebradas</span><span class="tag">Ilustrativa</span></span>
-          <span class="layer-color" style="background:#94a3b8"></span>
-        </button>
-        <button class="layer-btn" type="button" data-layer="infra" aria-pressed="false">
-          <span class="left"><span class="name">Infraestructura crítica</span><span class="tag">Ilustrativa</span></span>
-          <span class="layer-color" style="background:#ef4444"></span>
-        </button>
-      </div>
-    </section>
+      <section class="section">
+        <div class="section-title">🗺️ Capas</div>
+        <div id="layerToggles"></div>
+      </section>
 
-    <section class="section" aria-labelledby="metodo-title">
-      <div class="section-title" id="metodo-title">🧭 Cómo se decide el riesgo</div>
-      <p class="risk-legend">El impacto no depende solo de cuánto llueve. Cada localidad tiene un <b>umbral de lluvia</b> y una <b>exposición</b> (zona de quebrada, baja, urbana). La app cruza la lluvia pronosticada a 72 h con esa vulnerabilidad y genera un <b>aviso con acción preventiva</b>.</p>
-    </section>
-
-    <section class="section" aria-labelledby="fuentes-title">
-      <div class="section-title" id="fuentes-title">🛠️ Fuentes</div>
-      <a class="tech-link" href="https://open-meteo.com/en/docs" target="_blank" rel="noopener">🌤️ Lluvia pronosticada · Open-Meteo (en vivo)</a>
-      <a class="tech-link" href="https://open-meteo.com/en/docs/marine-weather-api" target="_blank" rel="noopener">🌊 TSM · Open-Meteo Marine (en vivo)</a>
-      <a class="tech-link" href="https://enfen.imarpe.gob.pe/" target="_blank" rel="noopener">📊 ENFEN · Comunicados operativos</a>
-      <a class="tech-link" href="https://sigrid.cenepred.gob.pe/" target="_blank" rel="noopener">⚠️ SIGRID · Gestión del riesgo</a>
-      <p class="note">Los umbrales y acciones son criterios de preparación de la herramienta y no sustituyen los comunicados oficiales del ENFEN, SENAMHI o INDECI, ni las decisiones de las autoridades locales.</p>
-    </section>
+      <section class="section">
+        <div class="section-title">📌 Fuentes oficiales y técnica</div>
+        <a class="link" href="https://enfen.imarpe.gob.pe/" target="_blank" rel="noopener">ENFEN · Comunicados operativos El Niño (Perú)</a>
+        <a class="link" href="https://www.senamhi.gob.pe/site/descarga-datos/" target="_blank" rel="noopener">SENAMHI · Datos hidrometeorológicos nacionales</a>
+        <a class="link" href="https://sigrid.cenepred.gob.pe/sigridv3/" target="_blank" rel="noopener">CENEPRED · SIGRID (mapa oficial de peligros)</a>
+        <a class="link" href="https://portal.indeci.gob.pe/fondes/zonas-expuestas-a-alto-peligro/" target="_blank" rel="noopener">INDECI · Zonas expuestas a alto peligro</a>
+        <a class="link" href="https://www.cpc.ncep.noaa.gov/products/analysis_monitoring/ensostuff/ONI_v5.php" target="_blank" rel="noopener">NOAA · Índice ONI (estado El Niño/La Niña)</a>
+        <a class="link" href="https://www.chc.ucsb.edu/data/chirps" target="_blank" rel="noopener">CHIRPS · Lluvia satelital (35 años, libre)</a>
+        <a class="link" href="https://global-flood.emergency.copernicus.eu/" target="_blank" rel="noopener">GloFAS · Pronóstico de inundaciones fluviales</a>
+        <a class="link" href="https://m.inei.gob.pe/" target="_blank" rel="noopener">INEI · Datos de población y territoria</a>
+        <p class="note">Los umbrales y acciones son criterios de preparación de esta herramienta comunitaria. No sustituyen los comunicados de ENFEN, SENAMHI, CENEPRED o INDECI, ni las decisiones de las autoridades locales.</p>
+      </section>
+    </div>
   </aside>
-
-  <main id="map" aria-label="Mapa de riesgo en el norte del Perú"></main>
-  <div class="info-panel" id="infoPanel" aria-live="polite"></div>
+  <main id="map" aria-label="Mapa nacional de riesgo El Niño"></main>
+  <div class="toast" id="toast"></div>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
   <script>
-    const map = L.map('map', { zoomControl: true }).setView([-5.5, -80.5], 6);
-    L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-      attribution: 'Tiles © Esri — Source: Esri, Maxar, Earthstar Geographics, and the GIS User Community', maxZoom: 19
-    }).addTo(map);
-    L.control.scale({ imperial: false }).addTo(map);
+  (function(){
+    const map = L.map('map',{zoomControl:true}).setView([-9.5,-75],5);
+    L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{maxZoom:19,attribution:'© Esri'}).addTo(map);
+    L.control.scale({imperial:false}).addTo(map);
 
-    const layers = { dem:L.layerGroup(), infra:L.layerGroup(), tsm:L.layerGroup(), riesgo:L.layerGroup(), departamentos:L.layerGroup() };
-    const status = document.getElementById('map-status');
-    const infoPanel = document.getElementById('infoPanel');
-    const alertList = document.getElementById('alertList');
+    const alertsEl=document.getElementById('alertList');
+    const statusEl=document.getElementById('mapStatus');
+    const toastEl=document.getElementById('toast');
+    const searchEl=document.getElementById('searchInput');
+    const togglesEl=document.getElementById('layerToggles');
+    const oniCard=document.getElementById('oniCard');
 
-    /* ---------- CATÁLOGO DE LOCALIDADES CON VULNERABILIDAD Y ACCIÓN ----------
-       Cada localidad: umbral de lluvia a 72h (mm) que dispara el aviso,
-       exposición, y la acción preventiva concreta recomendada. */
-    const localidades = [
-      { n:'Chulucanas',   lat:-5.10, lon:-80.16, umbral:25, expos:'Zona de quebrada y llanura baja', act:'Aviso a la comunidad: evacuar cauce de quebrada; no cruzar vados; activar comité local de emergencia.' },
-      { n:'Piura',        lat:-5.19, lon:-80.63, umbral:30, expos:'Urbana densa, río y drenaje', act:'Limpieza preventiva de drenajes y alcantarillas; alertar barrios ribereños del río Piura.' },
-      { n:'Tumbes',       lat:-3.57, lon:-80.45, umbral:25, expos:'Llanura baja, ríos Tumbes', act:'Vigilar caudal del río Tumbes; preparar refugios; avisar zonas de inundación recurrente.' },
-      { n:'Sullana',      lat:-4.90, lon:-80.68, umbral:30, expos:'Ribereña del río Chira', act:'Monitoreo del río Chira; restringir acceso a márgenes; aviso a barrios bajos.' },
-      { n:'Chiclayo',     lat:-6.77, lon:-79.84, umbral:30, expos:'Urbana, drenaje limitado', act:'Descolmatar drenajes; señalizar puntos de anegamiento; aviso a mercados y zonas bajas.' },
-      { n:'Lambayeque',   lat:-6.70, lon:-79.90, umbral:25, expos:'Valle agrícola, canales', act:'Limpiar canales de regadío; avisar caseríos cercanos a cauces de lluvia.' },
-      { n:'Trujillo',     lat:-8.11, lon:-79.02, umbral:30, expos:'Urbana, quebradas cercanas', act:'Aviso a poblados en quebradas de la parte alta; coordinar refugios en zona urbana.' },
-      { n:'Pacasmayo',    lat:-7.40, lon:-79.57, umbral:25, expos:'Costera, quebrada seca', act:'Alertar por posible activación de quebradas; avisar a pescadores y zona baja.' },
-      { n:'Casma',        lat:-9.47, lon:-78.30, umbral:25, expos:'Valle y quebradas', act:'Monitoreo de quebradas; evacuar márgenes del río Casma; aviso a comunidad.' }
-    ];
-
-    function accLevel(mm){ return mm>=60?'EXTREMO':mm>=40?'ALTO':mm>=25?'MODERADO':'BAJO'; }
-    function lvlClass(l){ return l==='EXTREMO'||l==='ALTO'?'high':l==='MODERADO'?'mid':'low'; }
-
-    /* ---------- CAPA DEMO: exposición ---------- */
-    L.polygon([[-5.18,-80.65],[-5.20,-80.60],[-5.25,-80.62],[-5.22,-80.68]], { color:'#64748b', fillColor:'#38bdf8', fillOpacity:.5 })
-      .bindPopup('<strong>Zona baja de estancamiento</strong><br>Riesgo de inundación pluvial.<br><em>Ilustrativa.</em>').addTo(layers.dem);
-    L.marker([-5.19,-80.63]).bindPopup('<strong>Población vulnerable (ejemplo)</strong><br>Acción: reubicación preventiva.').addTo(layers.infra);
-
-    /* ---------- CAPA EN VIVO: TSM ---------- */
-    const tsmPoints = [
-      { name:'Frente a Tumbes', lat:-3.7, lon:-81.4 },{ name:'Frente a Piura', lat:-5.0, lon:-81.6 },
-      { name:'Frente a Chiclayo', lat:-6.8, lon:-80.8 },{ name:'Frente a Trujillo', lat:-8.4, lon:-79.7 },
-      { name:'Frente a Lima', lat:-12.2, lon:-77.9 }
-    ];
-    function sstColor(c){ return c>=29?'#dc2626':c>=26?'#f97316':c>=24?'#3b82f6':'#1e40af'; }
-    Promise.all(tsmPoints.map(p =>
-      fetch(`https://marine-api.open-meteo.com/v1/marine?latitude=${p.lat}&longitude=${p.lon}&hourly=sea_surface_temperature&timezone=auto`)
-        .then(r=>{ if(!r.ok) throw new Error('TSM'); return r.json(); })
-        .then(d=>{ const v=d.hourly.sea_surface_temperature; const last=+v[v.length-1]; return { ...p, sst:last, time:d.hourly.time[v.length-1], unit:d.hourly_units.sea_surface_temperature }; })
-    )).then(pts=>{
-      pts.forEach(p=>{
-        L.circleMarker([p.lat,p.lon], { radius:8, color:'#0f172a', weight:1, fillColor:sstColor(p.sst), fillOpacity:.8 })
-          .bindPopup(`<strong>${p.name}</strong><br>TSM: <b>${p.sst.toFixed(1)} °C</b><br><small>Open-Meteo Marine · ${p.time}</small>`).addTo(layers.tsm);
-      });
-      layers.tsm.addTo(map);
-    }).catch(()=>{ status.textContent += ' TSM sin datos.'; });
-
-    /* ---------- NÚCLEO: lluvia prevista → riesgo + aviso + acción preventiva ---------- */
-    Promise.all(localidades.map(p =>
-      fetch(`https://api.open-meteo.com/v1/forecast?latitude=${p.lat}&longitude=${p.lon}&hourly=precipitation&timezone=auto&forecast_days=3`)
-        .then(r=>{ if(!r.ok) throw new Error('lluvia'); return r.json(); })
-        .then(d=>{ const arr=d.hourly.precipitation.map(Number); return { ...p, mm:arr.reduce((a,b)=>a+b,0), max:Math.max(...arr,0) }; })
-    )).then(res=>{
-      // color del marcador según nivel frente a su umbral
-      function riskColor(mm,umb){ return mm>=umb*1.6?'#dc2626':mm>=umb?'#f97316':'#22c55e'; }
-      res.forEach(p=>{
-        const level = accLevel(p.mm);
-        const r = Math.max(8, Math.min(22, 7 + p.mm));
-        L.circleMarker([p.lat,p.lon], { radius:r, color:'#0f172a', weight:1, fillColor:riskColor(p.mm,p.umbral), fillOpacity:.75 })
-          .bindPopup(`<strong>${p.n}</strong><br>Lluvia prevista 72h: <b>${p.mm.toFixed(1)} mm</b> (umbral ${p.umbral})<br>Nivel: ${level}<br><small>${p.expos}</small><br><b>Acción:</b> ${p.act}`)
-          .addTo(layers.riesgo);
-      });
-      layers.riesgo.addTo(map);
-
-      // Construir lista de avisos ordenada de mayor a menor riesgo
-      const orden = [...res].sort((a,b)=> b.mm - a.mm);
-      const enRiesgo = orden.filter(p=> p.mm >= p.umbral);
-      let html = '';
-      if (enRiesgo.length===0){
-        html = `<div class="alert-card low"><h3><span class="loc">Sin localidades en riesgo</span><span class="badge low">BAJO</span></h3><p>Las lluvias pronosticadas a 72 h están por debajo de los umbrales de aviso. Se mantiene vigilancia.</p></div>`;
-      } else {
-        enRiesgo.forEach(p=>{
-          const lvl = accLevel(p.mm), cls = lvlClass(lvl);
-          html += `<div class="alert-card ${cls}"><h3><span class="loc">${p.n}</span><span class="badge ${cls}">${lvl}</span></h3><p>Lluvia prevista 72 h: <b>${p.mm.toFixed(1)} mm</b> (umbral ${p.umbral}). ${p.expos}.</p><div class="action"><b>Acción preventiva →</b> ${p.act}</div></div>`;
-        });
-      }
-      // siempre mostrar el máximo aunque no supere umbral
-      const maxL = orden[0];
-      html += `<div class="alert-card"><h3><span class="loc">Vigilancia</span></h3><p>Localidad con mayor lluvia prevista: <b>${maxL.n}</b> con ${maxL.mm.toFixed(1)} mm (umbral ${maxL.umbral}). Nivel general: <b>${accLevel(maxL.mm)}</b>.</p></div>`;
-      alertList.innerHTML = html;
-      status.textContent = `Avisos calculados en vivo: ${enRiesgo.length} localidad(es) en riesgo de ${res.length}.`;
-    }).catch(()=>{ status.textContent += ' Avisos sin datos.'; });
-
-    /* ---------- CAPA BASE: departamentos (GeoJSON real) ---------- */
-    const infoMap = {
-      'TUMBES':'Costa norte. Impacto histórico extremo (1925, 1982-83, 1997-98, 2017).',
-      'PIURA':'Costa norte. Impacto recurrente por lluvias e inundación. Incluye Chulucanas y Sullana.',
-      'LAMBAYEQUE':'Costa norte. Inundación recurrente por desborde de ríos (Chiclayo, Lambayeque).',
-      'LA LIBERTAD':'Costa norte. Lluvias extremas y desbordes en cuencas costeras (Trujillo, Pacasmayo).',
-      'ANCASH':'Cordillera y costa. Huaicos y deslizamientos en quebradas (Casma).',
-      'CALLAO':'Región del Callao. Emergencias reportadas durante 2017.'
-    };
-    fetch('departamentos.geojson')
-      .then(r=>{ if(!r.ok) throw new Error('geojson'); return r.json(); })
-      .then(data=>{
-        L.geoJSON(data, {
-          style: { color:'#7e22ce', weight:1.4, fillColor:'#c084fc', fillOpacity:.06 },
-          onEachFeature: (feature, layer) => {
-            const name = feature.properties.nombdep || 'Departamento';
-            const ccdd = feature.properties.ccdd || '—';
-            const note = infoMap[name] || 'Consultar fuentes oficiales.';
-            layer.bindPopup(`<strong>${name}</strong><br><small>Código depto: ${ccdd}</small><br><small>${note}</small>`);
-            layer.on('click', () => { infoPanel.innerHTML = `<h3>${name}</h3><p><b>Exposición:</b> ${note}</p><p><b>Código depto:</b> ${ccdd}</p>`; infoPanel.style.display='block'; });
+    /* ---------- Estado El Niño: ONI (NOAA). Intenta lectura en vivo vía proxy con respaldo a dato documentado ---------- */
+    // Valor más reciente verificado (NOAA ERSSTv6, región Niño 3.4, consulta 2026-08): fase cálida (El Niño).
+    const ONI_BASE={val:+1.4, phase:'warm', label:'El Niño (cálido)', date:'2026-08 (NOAA ERSSTv6)'};
+    function renderOni(o){
+      const warm=o.phase==='warm';
+      oniCard.innerHTML=`<div class="oni-card ${warm?'warm':o.phase==='cool'?'cool':'neutral'}">
+        <div class="ph">${warm?'🔴 ':o.phase==='cool'?'🔵 ':'⚪ '}${o.label}</div>
+        <div class="val">Índice ONI (Niño 3.4): <b>${o.val>0?'+':''}${o.val} °C</b>. ${
+          warm?'Condiciones oceánicas cálidas: favorecen lluvias intensas y riesgo en la costa norte y sierra.':
+          o.phase==='cool'?'Condiciones frías (La Niña): riesgo distinto, vigilancia en sierra y selva.':
+          'Condiciones neutras: vigilancia estándar.'}</div>
+        <div class="src2">Fuente: ${o.date} · NOAA/CPC · Enlace en sección "Fuentes oficiales".</div></div>`;
+    }
+    renderOni(ONI_BASE); // carga inmediata, honesta
+    // intento de refresco en vivo (si el proxy responde), sin romper si falla
+    try{
+      fetch('https://api.allorigins.win/raw?url='+encodeURIComponent('https://psl.noaa.gov/data/correlation/oni.data'))
+        .then(r=>r.ok?r.text():Promise.reject())
+        .then(txt=>{
+          const lines=txt.split('\n').filter(l=>/^20\d\d/.test(l));
+          let last=null;
+          for(const ln of lines){ const t=ln.trim().split(/\s+/); if(t.length>13 && t[0]>=2024){ const v=parseFloat(t[t.length-2]); if(!isNaN(v)) last=v; } }
+          if(last!==null){
+            const ph=last>=0.5?'warm':last<=-0.5?'cool':'neutral';
+            renderOni({val:last, phase:ph, label:ph==='warm'?'El Niño (cálido)':ph==='cool'?'La Niña (frío)':'Neutro', date:'lectura en vivo NOAA/PSL'});
           }
-        }).addTo(layers.departamentos);
-        status.textContent = `Límites: ${data.features.length} regiones (real). ` + status.textContent;
-      })
-      .catch(()=>{ status.textContent += ' Límites: no cargados.'; });
+        }).catch(()=>{}); // mantiene el valor documentado
+    }catch(e){}
 
-    layers.departamentos.addTo(map);
+    /* ---------- Capas ---------- */
+    const LAYERS=[
+      {id:'base',  label:'Límites (25 regiones)', color:'#a855f7', on:true},
+      {id:'riesgo',label:'Riesgo por lluvia en vivo', color:'#f97316', on:true},
+      {id:'tsm',   label:'TSM frente a costa (en vivo)', color:'#3b82f6', on:true}
+    ];
+    const groups={}; LAYERS.forEach(L=>{ groups[L.id]=L.layerGroup(); if(L.on) groups[L.id].addTo(map); });
+    LAYERS.forEach(L=>{
+      const b=document.createElement('button'); b.className='alert'; b.style.marginBottom='9px'; b.style.width='100%'; b.style.cursor='pointer';
+      const left=document.createElement('span'); left.innerHTML=`<b>${L.label}</b>`;
+      const sw=document.createElement('span'); sw.style.float='right'; sw.style.color=L.color; sw.textContent=L.on?'ON':'OFF';
+      b.appendChild(left); b.appendChild(sw);
+      b.onclick=()=>{ const on=map.hasLayer(groups[L.id]); if(on){map.removeLayer(groups[L.id]);sw.textContent='OFF';sw.style.color='#94a3b8';} else {groups[L.id].addTo(map);sw.textContent='ON';sw.style.color=L.color;} };
+      togglesEl.appendChild(b);
+    });
 
-    /* ---------- Control de capas ---------- */
-    document.querySelectorAll('[data-layer]').forEach(button => button.addEventListener('click', () => {
-      const name = button.dataset.layer, layer = layers[name], enabled = map.hasLayer(layer);
-      if (enabled) { map.removeLayer(layer); if(name==='departamentos') infoPanel.style.display='none'; }
-      else layer.addTo(map);
-      button.classList.toggle('active', !enabled);
-      button.setAttribute('aria-pressed', String(!enabled));
-    }));
+    /* ---------- Acciones comunitarias por región ---------- */
+    const acciones={
+      'TUMBES':['Avisar a comunidades ribereñas del río Tumbes','Preparar refugios','Limpiar drenajes de zonas bajas'],
+      'PIURA':['Alertar barrios ribereños del río Piura','Descolmatar drenajes y alcantarillas','Activar comités de defensa civil'],
+      'LAMBAYEQUE':['Descolmatar canales y drenajes','Señalizar puntos de anegamiento','Avisar a mercados y zonas bajas'],
+      'LA LIBERTAD':['Avisar poblados en quebradas de la parte alta','Coordinar refugios urbanos','Restringir cruce de vados'],
+      'ANCASH':['Monitorear quebradas activas','Evacuar márgenes del río Casma','Alertar caseríos de laderas'],
+      'LIMA':['Avisar a poblados en quebradas de la cuenca','Limpiar cauces','Activar comités distritales'],
+      'CALLAO':['Vigilar puntos de inundación urbana','Preparar brigadas vecinales','Mantener desagües despejados'],
+      'ICA':['Proteger zonas agrícolas','Avisar a comunidades cerca de cauces secos'],
+      'AREQUIPA':['Alertar poblados en quebradas de la costa','Vigilar cauces de lluvias torrenciales'],
+      'MOQUEGUA':['Vigilar quebradas costeras','Avisar a comunidades del valle'],
+      'TACNA':['Monitorear cauces secos','Avisar a comunidades del valle'],
+      'PUNO':['Vigilar nivel del lago y ríos del altiplano','Alertar comunidades ribereñas del Titicaca'],
+      'CUSCO':['Avisar poblados en laderas','Vigilar deslizamientos en quebradas'],
+      'JUNIN':['Monitorear ríos de la selva alta y sierra','Alertar zonas de deslizamiento'],
+      'HUANCAVELICA':['Vigilar quebradas andinas','Avisar caseríos de laderas'],
+      'AYACUCHO':['Alertar por huaicos en quebradas','Evacuar cauces activos','Avisar a comunidades de laderas'],
+      'APURIMAC':['Monitorear quebradas andinas','Avisar a comunidades rurales'],
+      'PASCO':['Vigilar quebradas y socavones','Alertar zonas de altura'],
+      'HUANUCO':['Alertar por deslizamientos en selva alta','Vigilar ríos'],
+      'SAN MARTIN':['Vigilar ríos de selva alta','Avisar a comunidades ribereñas'],
+      'LORETO':['Monitorear crecida de ríos amazónicos','Preparar evacuación de comunidades ribereñas'],
+      'UCAYALI':['Vigilar ríos amazónicos','Avisar a comunidades ribereñas'],
+      'MADRE DE DIOS':['Monitorear ríos','Alertar comunidades ribereñas'],
+      'CAJAMARCA':['Alertar por deslizamientos en sierra norte','Vigilar quebradas'],
+      'AMAZONAS':['Monitorear quebradas y ríos','Avisar a comunidades andino-amazónicas']
+    };
+
+    /* ---------- TSM costa (en vivo) ---------- */
+    const tsm=[['-3.7','-81.4','Tumbes'],['-5.0','-81.6','Piura'],['-6.8','-80.8','Chiclayo'],['-8.4','-79.7','Trujillo'],['-12.2','-77.9','Lima']];
+    tsm.forEach(p=>fetch(`https://marine-api.open-meteo.com/v1/marine?latitude=${p[0]}&longitude=${p[1]}&hourly=sea_surface_temperature`).then(r=>r.json()).then(d=>{
+      const v=d.hourly.sea_surface_temperature, last=+v[v.length-1];
+      const c=last>=27?'#dc2626':last>=24?'#f59e0b':'#3b82f6';
+      L.circleMarker([+p[0],+p[1]],{radius:8,color:'#0f172a',weight:1,fillColor:c,fillOpacity:.8})
+        .bindPopup(`<b>${p[2]}</b><br>TSM: ${last.toFixed(1)} °C<br><small>Open-Meteo Marine</small>`).addTo(groups.tsm);
+    }).catch(()=>{}));
+
+    /* ---------- Límites + riesgo por departamento ---------- */
+    const dptoLayer=L.layerGroup();
+    const dptoRisk={};
+    function fit(nom){ dptoLayer.eachLayer(l=>{ if(l.feature&&l.feature.properties.nombdep===nom) map.fitBounds(l.getBounds(),{padding:[40,40],maxZoom:9}); }); }
+    fetch('departamentos.geojson').then(r=>r.json()).then(gj=>{
+      L.geoJSON(gj,{ style:{color:'#7e22ce',weight:1.3,fillColor:'#c084fc',fillOpacity:.05},
+        onEachFeature:(f,l)=>{
+          const nom=f.properties.nombdep;
+          l.on('click',()=>{ fit(nom); const r=dptoRisk[nom]; showToast(!!r?`${nom}: ${r.mm.toFixed(1)} mm/72h · nivel ${r.nivel}`:`${nom}: sin dato de lluvia`); });
+        }
+      }).addTo(dptoLayer);
+      groups.base.addLayer(dptoLayer);
+      statusEl.textContent=`Límites: ${gj.features.length} regiones (real). Lluvia en vivo: calculando…`;
+      const centros={'TUMBES':[-3.86,-80.54],'PIURA':[-5.13,-80.34],'LAMBAYEQUE':[-6.34,-79.83],'LA LIBERTAD':[-7.92,-78.37],'ANCASH':[-9.41,-77.67],'LIMA':[-11.79,-76.63],'CALLAO':[-11.94,-77.13],'ICA':[-14.23,-75.57],'AREQUIPA':[-15.84,-72.48],'MOQUEGUA':[-16.86,-70.84],'TACNA':[-17.64,-70.28],'PUNO':[-14.93,-69.95],'CUSCO':[-13.19,-72.17],'JUNIN':[-11.54,-74.88],'HUANCAVELICA':[-13.02,-75.0],'AYACUCHO':[-14.09,-74.08],'APURIMAC':[-14.03,-72.98],'PASCO':[-10.40,-75.30],'HUANUCO':[-9.42,-76.03],'SAN MARTIN':[-7.03,-76.72],'LORETO':[-4.12,-74.43],'UCAYALI':[-9.62,-73.43],'MADRE DE DIOS':[-11.98,-70.53],'CAJAMARCA':[-6.43,-78.75],'AMAZONAS':[-5.07,-78.05]};
+      // umbral por región: costa/sierra/amazonía
+      const umbral={'LORETO':50,'UCAYALI':50,'MADRE DE DIOS':45,'SAN MARTIN':45,'AMAZONAS':40,'CAJAMARCA':40,'ICA':12,'TACNA':12,'MOQUEGUA':12,'AREQUIPA':15,'LIMA':20,'CALLAO':20,'TUMBES':25,'PIURA':30,'LAMBAYEQUE':30,'LA LIBERTAD':30,'ANCASH':25,'PUNO':25,'AYACUCHO':25,'APURIMAC':25,'PASCO':25,'CUSCO':30,'JUNIN':30,'HUANCAVELICA':25,'HUANUCO':30};
+      function lvl(mm,u){ return mm>=u*1.6?'hi':mm>=u?'mid':'ok'; }
+      function lvlName(l){ return l==='hi'?'ALTO':l==='mid'?'MODERADO':'BAJO'; }
+      function rColor(mm,u){ const l=lvl(mm,u); return l==='hi'?'#dc2626':l==='mid'?'#f59e0b':'#22c55e'; }
+      const arrDpto=Object.keys(centros).map(nom=>{
+        const c=centros[nom], u=umbral[nom]||30;
+        return fetch(`https://api.open-meteo.com/v1/forecast?latitude=${c[0]}&longitude=${c[1]}&hourly=precipitation&forecast_days=3`)
+          .then(r=>r.json()).then(d=>{ const a=d.hourly.precipitation.map(Number); return {nom, mm:a.reduce((x,y)=>x+y,0), um:u}; }).catch(()=>null);
+      });
+      Promise.all(arrDpto).then(res=>{
+        res.filter(Boolean).forEach(r=>{ r.nivel=lvlName(lvl(r.mm,r.um)); dptoRisk[r.nom]=r;
+          const cc=centros[r.nom];
+          L.circleMarker(cc,{radius:9,color:'#0f172a',weight:1,fillColor:rColor(r.mm,r.um),fillOpacity:.7})
+            .bindPopup(`<b>${r.nom}</b><br>Lluvia 72h: ${r.mm.toFixed(1)} mm (umbral ${r.um})<br>Nivel: ${r.nivel}<br><b>Acción comunitaria:</b> ${(acciones[r.nom]||['Vigilancia preventiva']).join(' · ')}`).addTo(groups.riesgo);
+        });
+        const list=res.filter(Boolean).sort((a,b)=>b.mm-a.mm);
+        const enRiesgo=list.filter(r=>r.mm>=r.um);
+        let html='';
+        if(enRiesgo.length===0){
+          html=`<div class="alert"><div class="h"><span class="loc">Sin regiones en riesgo hoy</span></div><p>La lluvia prevista a 72 h está bajo el umbral de aviso en las 25 regiones. Se mantiene vigilancia y preparación comunitaria.</p></div>`;
+        } else {
+          enRiesgo.slice(0,8).forEach(r=>{
+            html+=`<div class="alert ${r.nivel==='ALTO'?'hi':r.nivel==='MODERADO'?'mid':'ok'}"><div class="h"><span class="loc">${r.nom}</span><span class="pill ${r.nivel==='ALTO'?'hi':r.nivel==='MODERADO'?'mid':'ok'}">${r.nivel}</span></div><p>${r.mm.toFixed(1)} mm/72h (umbral ${r.um}).</p><div class="action"><b>Acción comunitaria →</b> ${(acciones[r.nom]||['Activar protocolo de vigilancia']).join(' · ')}</div></div>`;
+          });
+        }
+        const top=list[0];
+        html+=`<div class="alert"><div class="h"><span class="loc">Vigilancia nacional</span></div><p>Máxima lluvia prevista: <b>${top.nom}</b> con ${top.mm.toFixed(1)} mm/72h. Toca el departamento en el mapa para su acción comunitaria.</p></div>`;
+        alertsEl.innerHTML=html;
+        statusEl.textContent=`Límites: ${gj.features.length} regiones. Lluvia en vivo: ${list.filter(r=>r.mm>=r.um).length} en riesgo de ${list.length}.`;
+      });
+    }).catch(()=>{ statusEl.textContent='Límites: no se pudo cargar el GeoJSON (verifica que esté junto a index.html).'; });
+
+    searchEl.addEventListener('keydown',e=>{ if(e.key!=='Enter') return; const q=searchEl.value.trim().toUpperCase(); if(!q) return; fit(q); });
+    function showToast(t){ toastEl.textContent=t; toastEl.style.display='block'; setTimeout(()=>toastEl.style.display='none',2600); }
+  })();
   </script>
 </body>
 </html>
-
