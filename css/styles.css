@@ -1,59 +1,96 @@
-:root{--primary:#0f172a;--accent:#2563eb;--ok:#16a34a;--mid:#f59e0b;--hi:#dc2626;--muted:#64748b}
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Anticipación El Niño · Explorador territorial</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<style>
 *{box-sizing:border-box;margin:0;padding:0}
-html,body{height:100%;width:100%;margin:0;padding:0;overflow:hidden;font-family:"Segoe UI",Roboto,Arial,sans-serif;color:#1e293b}
-/* Mapa a pantalla completa: 100dvh cubre toda la altura en movil */
-#map{position:fixed;top:0;left:0;right:0;bottom:0;width:100%;height:100dvh;height:100%;z-index:1;background:#eef2f6;border:none}
-/* Panel lateral de detalle (tipo Google Maps) */
-#panel{position:fixed;top:0;left:0;bottom:0;width:400px;max-width:92vw;z-index:1000;background:#fff;box-shadow:4px 0 24px rgba(15,23,42,.25);display:flex;flex-direction:column;transform:translateX(0);transition:transform .25s}
-#panel.closed{transform:translateX(-100%)}
-#panelHead{padding:16px;background:linear-gradient(135deg,#0f172a,#1e3a8a);color:#fff;flex-shrink:0}
-#panelHead h1{font-size:1.1rem}
-#panelHead p{font-size:.75rem;opacity:.85;margin-top:3px}
-#panelBody{flex:1;overflow-y:auto;padding:14px}
-/* Buscador flotante arriba del mapa */
-#searchBox{position:fixed;top:14px;left:14px;z-index:2000;width:380px;max-width:calc(100vw - 28px)}
-/* El desplegable sale DEBAJO de la caja (no a un lado del mapa) */
-#sug{position:absolute;top:100%;left:0;right:0;margin-top:4px;background:#fff;border-radius:12px;box-shadow:0 8px 24px rgba(15,23,42,.22);max-height:300px;overflow-y:auto;display:none;z-index:2001}
-#sug.show{display:block}
-.gc-item{padding:12px 16px;cursor:pointer;border-bottom:1px solid #f1f5f9}
-.gc-item:hover{background:#eff6ff}
-.gc-item b{font-size:.9rem;color:#0f172a}
-.gc-item small{display:block;color:var(--muted);font-size:.75rem;margin-top:2px}
-/* Tarjeta de detalle */
-.place{display:none;margin-bottom:12px}
-.place.show{display:block}
-.place .title{font-size:1.3rem;font-weight:800;color:var(--primary)}
-.place .sub{color:var(--muted);font-size:.85rem;margin-top:2px}
-.place .badge-lg{display:inline-block;margin-top:8px;padding:4px 12px;border-radius:20px;font-weight:700;font-size:.8rem;color:#fff}
-.place .badge-lg.rojo{background:var(--hi)}.place .badge-lg.naranja{background:var(--mid)}.place .badge-lg.verde{background:var(--ok)}.place .badge-lg.bajo{background:#94a3b8}
-.place .detail{background:#f8fafc;border-radius:10px;padding:12px;margin-top:10px;font-size:.85rem;line-height:1.5}
-.place .detail b{color:var(--primary)}
-.place .act{background:#eff6ff;border-left:4px solid var(--accent);border-radius:8px;padding:10px 12px;margin-top:10px;font-size:.85rem;color:#1e40af;line-height:1.5}
-.sec-title{font-weight:700;color:var(--primary);font-size:.9rem;margin:16px 0 8px;display:flex;align-items:center;gap:6px}
-.oni{border-radius:10px;padding:12px;color:#fff;margin-bottom:10px}
-.oni.warm{background:linear-gradient(135deg,#b91c1c,#dc2626)}
-.oni.neutral{background:linear-gradient(135deg,#334155,#475569)}
-.oni.cool{background:linear-gradient(135deg,#1e3a8a,#2563eb)}
-.oni .ph{font-weight:800;font-size:.95rem}.oni .v{font-size:.78rem;opacity:.9;margin-top:3px}.oni .s{font-size:.6rem;opacity:.7;margin-top:5px}
-.al{background:#f8fafc;border-left:4px solid var(--ok);border-radius:8px;padding:9px 11px;margin-bottom:7px;font-size:.82rem}
-.al.hi{border-left-color:var(--hi)}.al.mid{border-left-color:var(--mid)}
-.al .loc{font-weight:700}.al .mm{color:var(--muted)}
-.note{color:var(--muted);font-size:.7rem;line-height:1.4}
-.link{display:block;color:var(--accent);font-size:.82rem;margin-bottom:6px;text-decoration:none}
-.levels{display:flex;gap:5px;margin:8px 0}
-.levels span{flex:1;text-align:center;font-size:.62rem;font-weight:700;padding:3px 0;border-radius:5px;color:#fff}
-.levels .l1{background:#16a34a}.levels .l2{background:#f59e0b}.levels .l3{background:#dc2626}
-#togglePanel{position:fixed;top:14px;right:14px;z-index:2000;background:#fff;border:none;border-radius:28px;box-shadow:0 4px 14px rgba(15,23,42,.18);width:44px;height:44px;font-size:1.2rem;cursor:pointer}
-/* Jerarquía dep->prov->distrito (panel deslizable) */
-.jer-title{font-weight:700;color:#0f172a;margin:10px 0 6px;font-size:.85rem}
-.jer-item{background:#f8fafc;border-radius:8px;padding:9px 11px;margin-bottom:6px;cursor:pointer;border:1px solid #e2e8f0}
-.jer-item:hover{background:#eff6ff}
-.jer-item b{font-size:.88rem;color:#0f172a}
-.jer-item small{display:block;color:#64748b;font-size:.72rem;margin-top:2px}
-.jer-sub{margin-top:6px;border-top:1px solid #e2e8f0;padding-top:6px}
-.jer-dist{padding:6px 8px;border-radius:6px;cursor:pointer;font-size:.82rem}
-.jer-dist:hover{background:#dbeafe}
-.jer-dist small{color:#64748b;font-size:.7rem;margin-left:4px}
-/* Copyright institucional */
-.copy{opacity:.7;font-size:.6rem;margin-top:3px;color:#cbd5e1}
-@media(max-width:1024px){#panel{width:100%;max-width:100vw}#panel.closed{transform:translateX(-100%)}#searchBox{width:100%;max-width:calc(100vw - 20px);left:10px;top:10px}}
+html,body{height:100%;width:100%;overflow:hidden;font-family:"Segoe UI",Roboto,Arial,sans-serif;color:#1e293b}
+#map{position:fixed;inset:0;width:100%;height:100%;z-index:1}
+#nav{position:fixed;top:0;left:0;bottom:0;width:380px;max-width:90vw;z-index:1000;background:#fff;box-shadow:4px 0 24px rgba(15,23,42,.25);display:flex;flex-direction:column;transition:transform .25s}
+#nav.closed{transform:translateX(-100%)}
+#navHead{padding:16px;background:linear-gradient(135deg,#0f172a,#1e3a8a);color:#fff;flex-shrink:0}
+#navHead h1{font-size:1.1rem;margin:0}
+#navHead p{font-size:.72rem;opacity:.85;margin:2px 0 0}
+#navHead .copy{opacity:.6;font-size:.6rem;margin-top:3px;color:#cbd5e1}
+.q-wrap{position:relative;margin-top:10px}
+#q{width:100%;padding:10px 34px 10px 14px;border:none;border-radius:20px;font-size:.9rem;outline:none;box-sizing:border-box}
+.q-x{display:none;position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;font-size:1rem;cursor:pointer;color:#64748b;line-height:1;padding:4px}
+.q-x.show{display:block}
+#navBody{flex:1;overflow-y:auto;padding:10px}
+#toggleNav{position:fixed;top:12px;left:392px;z-index:1500;background:#fff;border:none;border-radius:50%;box-shadow:0 2px 10px rgba(0,0,0,.2);width:38px;height:38px;font-size:1rem;cursor:pointer}
+.it{padding:8px 11px;border-bottom:1px solid #eef2f6;cursor:pointer;font-size:.85rem;border-radius:6px}
+.it:hover{background:#eff6ff}
+.it.dep{font-weight:800;color:#0f172a;font-size:.92rem}.it.dep::before{content:"▾ "}
+.it.prov{padding-left:22px;color:#334155;font-weight:600}.it.prov::before{content:"▸ "}.it.prov.open::before{content:"▾ "}
+.it.dist{padding-left:44px;color:#475569;font-size:.8rem}.it.dist small{color:#94a3b8;font-size:.68rem}.it.dist:hover{background:#dbeafe}
+.it .ub{background:#f1f5f9;border-radius:5px;padding:1px 6px;font-size:.66rem;color:#475569;margin-left:4px}
+.loading{color:#94a3b8;font-style:italic;font-size:.75rem;padding:6px 11px}
+#detalle{position:fixed;right:14px;top:14px;z-index:1500;width:330px;max-width:88vw;background:#fff;border-radius:12px;box-shadow:0 6px 20px rgba(0,0,0,.25);padding:14px;display:none;max-height:80vh;overflow-y:auto}
+#detalle.show{display:block}
+#detalle .t{font-size:1.1rem;font-weight:800;color:#0f172a}
+#detalle .s{font-size:.78rem;color:#64748b;margin-top:2px}
+#detalle .b{display:inline-block;margin-top:8px;padding:3px 12px;border-radius:14px;font-weight:700;font-size:.75rem;color:#fff}
+#detalle .b.rojo{background:#dc2626}#detalle .b.naranja{background:#f59e0b}#detalle .b.verde{background:#16a34a}#detalle .b.bajo{background:#94a3b8}
+#detalle .d{font-size:.8rem;color:#334155;margin-top:8px;line-height:1.6}
+#detalle .a{background:#eff6ff;border-left:4px solid #2563eb;border-radius:6px;padding:8px 10px;margin-top:8px;font-size:.78rem;color:#1e40af}
+@media(max-width:1024px){#nav{width:100%;max-width:100vw}#toggleNav{left:auto;right:14px}}
+</style>
+</head>
+<body>
+<div id="map"></div>
+<button id="toggleNav" title="Panel">≣</button>
+<div id="nav">
+  <div id="navHead">
+    <h1>Anticipación El Niño</h1>
+    <p>Explorador territorial · Perú</p>
+    <div class="copy">©SIP SYSTEM INTELLIGENCE PLATFORM 2026</div>
+    <div class="q-wrap">
+      <input id="q" placeholder="Buscar departamento, provincia, distrito o UBIGEO…" autocomplete="off">
+      <button class="q-x" id="qX" title="Limpiar">✕</button>
+    </div>
+  </div>
+  <div id="navBody"><div class="loading">Cargando territorios…</div></div>
+</div>
+<div id="detalle"><div class="t" id="dtT"></div><div class="s" id="dtS"></div><span class="b" id="dtB"></span><div class="d" id="dtD"></div><div class="a" id="dtA"></div></div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+const ARBOL=__ARBOL__;
+(function(){
+  const map=L.map('map',{zoomControl:true}).setView([-9.5,-75],5);
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',{maxZoom:19,attribution:'© OpenStreetMap © CARTO',subdomains:'abcd',r:'@2x'}).addTo(map);
+  L.control.scale({imperial:false}).addTo(map);
+  const navBody=document.getElementById('navBody'),qi=document.getElementById('q'),nav=document.getElementById('nav'),dd=document.getElementById('detalle'),qX=document.getElementById('qX');
+  let expDep=null,expProv=null;
+  function norm(s){return (s||'').toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^A-Z0-9]/g,'');}
+  function detalle(t,s,col,label,dtxt,act){document.getElementById('dtT').textContent=t;document.getElementById('dtS').textContent=s;document.getElementById('dtB').textContent=label;document.getElementById('dtB').className='b '+col;document.getElementById('dtD').innerHTML=dtxt;document.getElementById('dtA').innerHTML=act;dd.classList.add('show');}
+  function render(){
+    const filter=norm(qi.value);
+    let html='';
+    Object.keys(ARBOL).forEach(dep=>{
+      if(filter&&!norm(dep).includes(filter))return;
+      const open=(expDep===dep);
+      html+='<div class="it dep" data-nom="'+dep+'">'+dep+(open?'':' <small style="font-weight:400;color:#94a3b8">▸</small>')+'</div>';
+      if(open)Object.keys(ARBOL[dep]).forEach(prov=>{
+        if(filter&&!norm(prov).includes(filter))return;
+        const pOpen=(expProv===prov);
+        html+='<div class="it prov'+(pOpen?' open':'')+'" data-pro="'+prov+'">'+prov+' <small style="font-weight:400;color:#94a3b8">('+ARBOL[dep][prov].length+')</small></div>';
+        if(pOpen)ARBOL[dep][prov].forEach(d=>{html+='<div class="it dist" data-d="'+encodeURIComponent(JSON.stringify(d))+'">'+d[0]+' <span class="ub">'+d[1]+'</span></div>';});
+      });
+    });
+    navBody.innerHTML=html||'<div class="loading">Sin resultados.</div>';
+    navBody.querySelectorAll('.it.dep').forEach(el=>el.addEventListener('click',()=>{expDep=(expDep===el.dataset.nom)?null:el.dataset.nom;expProv=null;render();}));
+    navBody.querySelectorAll('.it.prov').forEach(el=>el.addEventListener('click',()=>{expProv=(expProv===el.dataset.pro)?null:el.dataset.pro;render();}));
+    navBody.querySelectorAll('.it.dist').forEach(el=>el.addEventListener('click',()=>{const d=JSON.parse(decodeURIComponent(el.dataset.d));map.setView([d[2]||-12,d[3]||-77],13);detalle(d[0],'Distrito · UBIGEO '+d[1],'verde','VIGILANCIA','<b>Coordenadas:</b> '+d[2]+', '+d[3],'En temporada seca lluvia puede ser 0. Se cruza con lluvia en vivo.');}));
+  }
+  qi.addEventListener('input',()=>{qX.classList.toggle('show',qi.value.length>0);render();});
+  qX.addEventListener('click',()=>{qi.value='';qX.classList.remove('show');render();qi.focus();});
+  document.getElementById('toggleNav').addEventListener('click',()=>nav.classList.toggle('closed'));
+  render();
+  map.on('click',e=>{map.setView([e.latlng.lat,e.latlng.lng],Math.max(map.getZoom(),9));});
+})();
+</script>
+</body>
+</html>
