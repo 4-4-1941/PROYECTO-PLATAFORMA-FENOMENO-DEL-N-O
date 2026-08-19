@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Anticipación El Niño · Explorador territorial</title>
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+<div id="map"></div>
+<button id="toggleNav" title="Panel">≣</button>
+<div id="nav">
+  <div id="navHead">
+    <h1>Anticipación El Niño</h1>
+    <p>Explorador territorial · Perú</p>
+    <div class="copy">©SIP SYSTEM INTELLIGENCE PLATFORM 2026</div>
+    <div class="q-wrap">
+      <input id="q" placeholder="Buscar departamento, provincia, distrito o UBIGEO…" autocomplete="off">
+      <button class="q-x" id="qX" title="Limpiar">✕</button>
+    </div>
+  </div>
+  <div id="navBody"><div class="loading">Cargando territorios…</div></div>
+</div>
+<div id="detalle">
+  <button class="dX" id="dX" title="Cerrar">✕</button>
+  <div class="t" id="dtT"></div><div class="s" id="dtS"></div>
+  <span class="b" id="dtB"></span><div class="d" id="dtD"></div><div class="a" id="dtA"></div>
+</div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+const ARBOL=__ARBOL__;
+(function(){
+  const map=L.map('map',{zoomControl:true}).setView([-9.5,-75],5);
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',{maxZoom:19,attribution:'© OpenStreetMap © CARTO',subdomains:'abcd',r:'@2x'}).addTo(map);
+  const navBody=document.getElementById('navBody'),qi=document.getElementById('q'),nav=document.getElementById('nav'),dd=document.getElementById('detalle'),qX=document.getElementById('qX'),dX=document.getElementById('dX');
+  let expDep=null,expProv=null;
+  function norm(s){return (s||'').toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^A-Z0-9]/g,'');}
+  function cerrarDetalle(){dd.classList.remove('show');}
+  dX.addEventListener('click',cerrarDetalle);
+  function detalle(t,s,col,label,dtxt,act){document.getElementById('dtT').textContent=t;document.getElementById('dtS').textContent=s;document.getElementById('dtB').textContent=label;document.getElementById('dtB').className='b '+col;document.getElementById('dtD').innerHTML=dtxt;document.getElementById('dtA').innerHTML=act;dd.classList.add('show');}
+  function render(){const filter=norm(qi.value);let html='';Object.keys(ARBOL).forEach(dep=>{if(filter&&!norm(dep).includes(filter))return;const open=(expDep===dep);html+='<div class="it dep" data-nom="'+dep+'">'+dep+'</div>';if(open)Object.keys(ARBOL[dep]).forEach(prov=>{if(filter&&!norm(prov).includes(filter))return;const pOpen=(expProv===prov);html+='<div class="it prov'+(pOpen?' open':'')+'" data-pro="'+prov+'">'+prov+' ('+ARBOL[dep][prov].length+')</div>';if(pOpen)ARBOL[dep][prov].forEach(d=>{html+='<div class="it dist" data-d="'+encodeURIComponent(JSON.stringify(d))+'">'+d[0]+' <span class="ub">'+d[1]+'</span></div>';});});});navBody.innerHTML=html||'<div class="loading">Sin resultados.</div>';navBody.querySelectorAll('.it.dep').forEach(el=>el.addEventListener('click',()=>{expDep=(expDep===el.dataset.nom)?null:el.dataset.nom;expProv=null;render();}));navBody.querySelectorAll('.it.prov').forEach(el=>el.addEventListener('click',()=>{expProv=(expProv===el.dataset.pro)?null:el.dataset.pro;render();}));navBody.querySelectorAll('.it.dist').forEach(el=>el.addEventListener('click',()=>{const d=JSON.parse(decodeURIComponent(el.dataset.d));map.setView([d[2]||-12,d[3]||-77],13);detalle(d[0],'Distrito · UBIGEO '+d[1],'verde','VIGILANCIA','<b>Coordenadas:</b> '+d[2]+', '+d[3],'En temporada seca lluvia puede ser 0. Se cruza con lluvia en vivo.');}));}
+  qi.addEventListener('input',()=>{qX.classList.toggle('show',qi.value.length>0);render();});
+  qX.addEventListener('click',()=>{qi.value='';qX.classList.remove('show');render();qi.focus();});
+  document.getElementById('toggleNav').addEventListener('click',()=>nav.classList.toggle('closed'));
+  render();
+})();
+</script>
+</body>
+</html> 
