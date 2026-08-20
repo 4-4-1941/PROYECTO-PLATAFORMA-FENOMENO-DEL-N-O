@@ -51,4 +51,3 @@ window.UI = (function(){
   return {init,lugar,mostrarJerarquia,noResultado};
 })();
 
-    
