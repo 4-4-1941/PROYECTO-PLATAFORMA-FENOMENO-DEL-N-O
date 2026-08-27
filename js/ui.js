@@ -5,7 +5,8 @@ window.UI = (function(){
     panel=document.getElementById('panel');placeCard=document.getElementById('placeCard');
     pT=document.getElementById('pTitle');pS=document.getElementById('pSub');pB=document.getElementById('pBadge');pD=document.getElementById('pDetail');pA=document.getElementById('pAccion');
     jerEl=document.getElementById('jerarquia');
-    document.getElementById('togglePanel').addEventListener('click',()=>panel.classList.toggle('closed'));
+    const tp=document.getElementById('togglePanel')||document.getElementById('toggleNav');
+    if(tp)tp.addEventListener('click',()=>panel.classList.toggle('closed'));
   }
   function lugar(titulo,sub,mm,umb,accion,NIV,nivelDe){
     const n=nivelDe(mm),info=NIV[n];
@@ -39,15 +40,30 @@ window.UI = (function(){
         sub.style.display = sub.style.display==='none'?'block':'none';
       });
     });
-    // Ir a distrito al tocar
+    // Ir a distrito al tocar + nivel 4: centros poblados
     jerEl.querySelectorAll('.jer-dist').forEach(dist=>{
       dist.addEventListener('click',()=>{
         if(window.Mapa) Mapa.centrar(parseFloat(dist.dataset.lat),parseFloat(dist.dataset.lon),13);
         pS.textContent=`${dist.dataset.nom} · UBIGEO ${dist.dataset.ub}`;
+        // toggle nivel 4 (centros poblados)
+        let sub=dist.querySelector('.cp-sub');
+        if(sub){sub.style.display=sub.style.display==='none'?'block':'none';return;}
+        const ub=dist.dataset.ub;
+        const cps=(window.CENTROS_POBLADOS_DATA||[]).filter(c=>c[1]===ub);
+        if(!cps.length){pDetail.innerHTML=`<b>${dist.dataset.nom}</b>: sin centros poblados registrados en el nivel de datos INEI cargado.`;return;}
+        sub=document.createElement('div');sub.className='cp-sub';
+        sub.innerHTML=cps.slice(0,25).map(c=>`<div class="jer-dist" data-lat="${c[3]}" data-lon="${c[4]}" data-nom="${c[0]}"><small>• </small>${c[0]} <small>CCPP ${c[2]}</small></div>`).join('')+(cps.length>25?`<div class="note">…${cps.length-25} más</div>`:'');
+        dist.appendChild(sub);
+        sub.querySelectorAll('.jer-dist').forEach(cp=>cp.addEventListener('click',()=>{
+          if(window.Mapa) Mapa.centrar(parseFloat(cp.dataset.lat),parseFloat(cp.dataset.lon),15);
+          pS.textContent=`${cp.dataset.nom} · centro poblado`;
+          pDetail.innerHTML=`<b>${cp.dataset.nom}</b><br><small>Centro poblado del distrito ${dist.dataset.nom} (UBIGEO ${dist.dataset.ub})</small>`;
+        }));
       });
     });
   }
   function noResultado(){pT.textContent='No encontrado';pS.textContent='Prueba: Samegua, Chincha, Piura…';pB.className='badge-lg bajo';pB.textContent='?';panel.classList.remove('closed');}
   return {init,lugar,mostrarJerarquia,noResultado};
 })();
+
 

@@ -3,7 +3,7 @@ window.Mapa = (function(){
   let map, grp, deptoLayer, onDeptoClic;
   function init(geoUrl, onDeptoClic){
     map = L.map('map',{zoomControl:true}).setView([-9.5,-75],5);
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',{maxZoom:19,attribution:'© OpenStreetMap © CARTO',subdomains:'abcd',r:'@2x'}).addTo(map);
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap'}).addTo(map);
     L.control.scale({imperial:false}).addTo(map);
     grp = L.layerGroup().addTo(map);
     onDeptoClic = onDeptoClic;
@@ -43,4 +43,5 @@ window.Mapa = (function(){
   }
   return {init,pintar,centrar,onClic,has,rm,add,getMap,zoomDepto};
 })();
+
 
