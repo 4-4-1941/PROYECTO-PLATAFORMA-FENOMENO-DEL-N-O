@@ -65,21 +65,43 @@ const map=L.map('map',{zoomControl:true}).setView([-9.5,-75],5);
   }
   function aDistrito(d){if(d[2]!=null&&d[3]!=null)map.setView([d[2],d[3]],13);lluviaReal(d[0],d[2]||-12,d[3]||-77,d[1]);}
   function render(filter){
-    let html='';
-    Object.keys(ARBOL).forEach(dep=>{
-      if(filter&&!norm(dep).includes(filter))return;
-      const open=(expDep===dep);
-      html+='<div class="it dep" data-nom="'+dep+'">'+dep+(open?'':' <small style="font-weight:400;color:#94a3b8">▸</small>')+'</div>';
-      if(open)Object.keys(ARBOL[dep]).forEach(prov=>{
-        if(filter&&!norm(prov).includes(filter))return;
-        const pOpen=(expProv===prov);
-        html+='<div class="it prov'+(pOpen?' open':'')+'" data-pro="'+prov+'">'+prov+' <small style="font-weight:400;color:#94a3b8">('+ARBOL[dep][prov].length+')</small></div>';
-        if(pOpen)ARBOL[dep][prov].forEach(d=>{html+='<div class="it dist" data-d="'+encodeURIComponent(JSON.stringify(d))+'">'+d[0]+' <span class="ub">'+d[1]+'</span></div>';});
+    var f=(filter&&filter.length>=2)?filter:'';
+    var html='',total=0;
+    if(!f){
+      Object.keys(ARBOL).forEach(dep=>{
+        var open=(expDep===dep);
+        html+='<div class="it dep" data-nom="'+dep+'">'+dep+(open?'':' <small style="font-weight:400;color:#94a3b8">▸</small>')+'</div>';
+        if(open)Object.keys(ARBOL[dep]).forEach(prov=>{
+          var pOpen=(expProv===prov);
+          html+='<div class="it prov'+(pOpen?' open':'')+'" data-pro="'+prov+'">'+prov+' <small style="font-weight:400;color:#94a3b8">('+ARBOL[dep][prov].length+')</small></div>';
+          if(pOpen)ARBOL[dep][prov].forEach(d=>{html+='<div class="it dist" data-d="'+encodeURIComponent(JSON.stringify(d))+'">'+d[0]+' <span class="ub">'+d[1]+'</span></div>';});
+        });
       });
-    });
+    } else {
+      Object.keys(ARBOL).forEach(dep=>{
+        var depMatch=norm(dep).includes(f);
+        var provHtml='',depHas=false;
+        Object.keys(ARBOL[dep]).forEach(prov=>{
+          var provMatch=norm(prov).includes(f);
+          var distHtml='',provHas=false;
+          ARBOL[dep][prov].forEach(d=>{
+            var dm=norm(d[0]).includes(f)||(''+d[1]).indexOf(f)>=0;
+            if(dm){total++;provHas=true;distHtml+='<div class="it dist" data-d="'+encodeURIComponent(JSON.stringify(d))+'">'+d[0]+' <span class="ub">'+d[1]+'</span></div>';}
+          });
+          if(provMatch||provHas){
+            depHas=true;
+            provHtml+='<div class="it prov open" data-pro="'+prov+'">'+prov+' <small style="font-weight:400;color:#94a3b8">('+ARBOL[dep][prov].length+')</small></div>';
+            if(provHas)provHtml+=distHtml;
+          }
+        });
+        if(depMatch||depHas){html+='<div class="it dep open" data-nom="'+dep+'">'+dep+'</div>'+provHtml;}
+      });
+    }
     navBody.innerHTML=html||'<div class="loading">Sin resultados.</div>';
-    navBody.querySelectorAll('.it.dep').forEach(el=>el.addEventListener('click',()=>{expDep=(expDep===el.dataset.nom)?null:el.dataset.nom;expProv=null;render(norm(qi.value));}));
-    navBody.querySelectorAll('.it.prov').forEach(el=>el.addEventListener('click',()=>{expProv=(expProv===el.dataset.pro)?null:el.dataset.pro;render(norm(qi.value));}));
+    var qs=document.getElementById('searchStatus');
+    if(qs)qs.textContent=f?(total?total+' coincidencia'+(total>1?'s':''):'Sin coincidencias'):'';
+    navBody.querySelectorAll('.it.dep').forEach(el=>el.addEventListener('click',()=>{expDep=(expDep===el.dataset.nom)?null:el.dataset.nom;expProv=null;render(qi.value);}));
+    navBody.querySelectorAll('.it.prov').forEach(el=>el.addEventListener('click',()=>{expProv=(expProv===el.dataset.pro)?null:el.dataset.pro;render(qi.value);}));
     navBody.querySelectorAll('.it.dist').forEach(el=>el.addEventListener('click',()=>{aDistrito(JSON.parse(decodeURIComponent(el.dataset.d)));}));
   }
   qi.addEventListener('input',()=>{var qs=document.getElementById('searchStatus');if(qs)qs.textContent=qi.value?'—':'';render(norm(qi.value));});
