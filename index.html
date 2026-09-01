@@ -1,33 +1,155 @@
 <!doctype html>
 <html lang="es">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Prevención El Niño / La Niña · Perú</title>
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-<link rel="stylesheet" href="css/styles.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#0b2239">
+  <title>Prevención El Niño / La Niña · Perú</title>
+
+  <link id="leafletCssPrimary" rel="stylesheet"
+        href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        crossorigin="">
+  <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
-<div id="map"></div>
-<header id="top"><button id="menu">☰</button><div><b>Prevención El Niño / La Niña</b><small>Información territorial para actuar antes</small></div><button id="gps">⌖</button></header>
-<aside id="panel">
-<div class="head"><div><h1>Prevención territorial</h1><p>Busca departamento, provincia, distrito o UBIGEO.</p></div><button id="close">×</button></div>
-<div class="search"><input id="q" placeholder="Ej.: Piura, Chulucanas, 200401"><button id="clear">×</button></div>
-<div id="results"></div>
-<section class="purpose"><b>NO ES UNA APP METEOROLÓGICA</b><p>El mapa y la precipitación son insumos. La prioridad es reconocer amenazas y tomar acciones preventivas.</p></section>
-<section id="detail" hidden>
-<span class="tag">TERRITORIO</span><h2 id="place"></h2><p id="meta"></p>
-<div class="metrics"><div><small>Precipitación prevista 72 h</small><strong id="rain">—</strong></div><div><small>UBIGEO</small><strong id="ubigeo">—</strong></div></div>
-<p class="warning"><b>Atención:</b> la precipitación prevista no es un nivel oficial de riesgo. Contrasta siempre con SENAMHI, ENFEN, CENEPRED, INDECI y la autoridad local.</p>
-<nav><button class="tab active" data-tab="poblador">Poblador</button><button class="tab" data-tab="dirigente">Dirigente</button><button class="tab" data-tab="amenazas">Amenazas</button></nav>
-<div id="actions"></div>
-<button id="again" class="primary">Buscar otro lugar</button>
-</section>
-<section class="sources"><b>Fuentes oficiales</b><div><a href="https://www.senamhi.gob.pe/" target="_blank">SENAMHI</a><a href="https://enfen.imarpe.gob.pe/" target="_blank">ENFEN</a><a href="https://sigrid.cenepred.gob.pe/sigridv3/" target="_blank">CENEPRED</a><a href="https://portal.indeci.gob.pe/" target="_blank">INDECI</a></div></section>
-<footer>© SIP · SYSTEM INTELLIGENCE PLATFORM 2026</footer>
-</aside>
-<button id="open" hidden>Prevención</button>
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script src="js/distritos.js"></script>
-<script src="js/prevention-app.js"></script>
-</body></html>
+  <div id="map" aria-label="Mapa territorial de prevención"></div>
+  <div id="mapFallback" class="map-fallback hidden">
+    <div>
+      <strong>Mapa no disponible</strong>
+      <span>La herramienta preventiva sigue operativa. Revise conexión o intente nuevamente.</span>
+      <button id="retryMap">Reintentar mapa</button>
+    </div>
+  </div>
+
+  <header class="appbar">
+    <button id="panelToggle" class="icon" aria-label="Abrir o cerrar panel">☰</button>
+    <div class="brand">
+      <strong>Prevención El Niño / La Niña</strong>
+      <span>Territorio · amenazas · acciones antes del impacto</span>
+    </div>
+    <button id="gpsBtn" class="icon" aria-label="Usar mi ubicación">⌖</button>
+  </header>
+
+  <aside id="panel" class="panel">
+    <div class="panel-header">
+      <div>
+        <span class="kicker">SIP · PREVENCIÓN COMUNITARIA</span>
+        <h1>¿Qué puede ocurrir aquí y qué debemos hacer?</h1>
+      </div>
+      <button id="panelClose" class="close" aria-label="Cerrar">×</button>
+    </div>
+
+    <section class="search-section">
+      <label for="q">Busca departamento, provincia, distrito o UBIGEO</label>
+      <div class="search-row">
+        <input id="q" autocomplete="off" inputmode="search" placeholder="Ej.: Piura, Chulucanas, 200401">
+        <button id="qClear" aria-label="Limpiar búsqueda">×</button>
+      </div>
+      <div id="results" class="results"></div>
+    </section>
+
+    <section class="mission">
+      <div class="mission-icon">!</div>
+      <div>
+        <b>Herramienta preventiva, no pronóstico meteorológico</b>
+        <p>La lluvia es un insumo. La decisión preventiva debe considerar amenaza, exposición, condiciones locales y avisos oficiales.</p>
+      </div>
+    </section>
+
+    <section id="overview" class="overview">
+      <div class="phenomenon nino">
+        <b>El Niño</b>
+        <span>Lluvias intensas · inundación · huaicos · desbordes · aislamiento</span>
+      </div>
+      <div class="phenomenon nina">
+        <b>La Niña</b>
+        <span>Frío o sequedad regional · cambios de lluvia · crecidas según territorio</span>
+      </div>
+    </section>
+
+    <section id="territory" class="territory hidden">
+      <div class="territory-head">
+        <div>
+          <span class="kicker">TERRITORIO SELECCIONADO</span>
+          <h2 id="place">—</h2>
+          <p id="placeMeta">—</p>
+        </div>
+        <span id="hydroSignal" class="signal neutral">SIN DATO</span>
+      </div>
+
+      <div class="metrics">
+        <article>
+          <span>Precipitación prevista</span>
+          <strong id="rain72">—</strong>
+          <small>Acumulado orientativo próximas 72 h</small>
+        </article>
+        <article>
+          <span>UBIGEO</span>
+          <strong id="ubigeo">—</strong>
+          <small>Referencia territorial</small>
+        </article>
+      </div>
+
+      <div class="method-note">
+        <b>No confundir:</b> precipitación prevista ≠ riesgo oficial. La señal mostrada sirve para vigilancia preventiva y debe contrastarse con las fuentes oficiales.
+      </div>
+
+      <div class="tabs">
+        <button class="tab active" data-tab="poblador">Poblador</button>
+        <button class="tab" data-tab="dirigente">Dirigente</button>
+        <button class="tab" data-tab="amenazas">Amenazas</button>
+      </div>
+      <div id="actionPanel" class="action-panel"></div>
+
+      <button id="newSearch" class="primary">Buscar otro territorio</button>
+    </section>
+
+    <section class="official">
+      <div class="section-title">
+        <b>Verificar antes de decidir</b>
+        <span>Fuentes oficiales del Perú</span>
+      </div>
+      <div class="official-grid">
+        <a href="https://www.senamhi.gob.pe/" target="_blank" rel="noopener">SENAMHI</a>
+        <a href="https://enfen.imarpe.gob.pe/" target="_blank" rel="noopener">ENFEN</a>
+        <a href="https://sigrid.cenepred.gob.pe/sigridv3/" target="_blank" rel="noopener">CENEPRED</a>
+        <a href="https://portal.indeci.gob.pe/" target="_blank" rel="noopener">INDECI</a>
+      </div>
+    </section>
+
+    <footer>
+      <span>© SIP · SYSTEM INTELLIGENCE PLATFORM 2026</span>
+      <span id="networkState">—</span>
+    </footer>
+  </aside>
+
+  <button id="panelReopen" class="panel-reopen hidden">Prevención</button>
+  <div id="toast" class="toast"></div>
+
+  <script>
+    /* Carga robusta de Leaflet: unpkg -> jsDelivr. No deja pantalla blanca si falla un CDN. */
+    window.__loadLeaflet = function(done){
+      if(window.L){ done(true); return; }
+      const urls = [
+        "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js",
+        "https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"
+      ];
+      let i=0;
+      function next(){
+        if(i>=urls.length){ done(false); return; }
+        const s=document.createElement("script");
+        s.src=urls[i++];
+        s.crossOrigin="";
+        s.onload=()=>window.L ? done(true) : next();
+        s.onerror=next;
+        document.head.appendChild(s);
+      }
+      next();
+    };
+  </script>
+
+  <!-- Se conserva la base territorial real ya existente en el repositorio -->
+  <script src="js/distritos.js"></script>
+  <script src="js/prevention-app.js"></script>
+</body>
+</html>
